@@ -55,6 +55,8 @@
 </template>
 
 <script>
+import Fuse from "fuse.js";
+
 export default {
   data() {
     return {
@@ -62,38 +64,113 @@ export default {
       allQuestions: [
         {
           text: "What are your services?",
-          response: "We provide ordering services!",
-          next: ["Where are you located?", "How do I track my order?"],
+          response: "We provide ordering services and high-quality aluminum products, including seamless steel pipes, precision tubes, alloy pipes, and more.",
+          next: ["What products do you offer?", "What are your operating hours?"],
         },
         {
-          text: "What payment methods do you accept?",
-          response: "We accept Gcash, Cash On Delivery, and Pickup.",
-          next: ["Do you offer free shipping?", "Can I cancel my order?"],
+          text: "What products do you offer?",
+          response: "We offer seamless steel pipes, precision tubes, alloy pipes, copper tubes, aluminum tubes, and other products used in various industries.",
+          next: ["What materials are your products made from?", "What are the applications of your products?"],
         },
         {
-          text: "Do you ship internationally?",
-          response: "Currently, we do not offer international shipping.",
-          next: ["What are your services?", "What payment methods do you accept?"],
+          text: "What materials are your products made from?",
+          response: "Our products are made from high-quality raw materials like steel, copper, and aluminum, ensuring durability and reliability.",
+          next: ["What products do you offer?", "What are the applications of your products?"],
+        },
+        {
+          text: "What are the applications of your products?",
+          response: "Our products are used in fluid transport, boilers, heat exchangers, construction, oil pipelines, and many other industries.",
+          next: ["What products do you offer?", "What materials are your products made from?"],
         },
         {
           text: "Where are you located?",
           response: "We are located in San Matias, San Fernando, Pampanga.",
-          next: ["What are your services?", "What payment methods do you accept?"],
+          next: ["Do you ship internationally?", "How long does shipping take?"],
         },
         {
-          text: "How do I track my order?",
-          response: "You can track your order in your Profile then there's a list saying 'My Order' section.",
-          next: ["Do you ship internationally?", "Can I cancel my order?"],
+          text: "Do you ship internationally?",
+          response: "Currently, we do not offer international shipping. We only deliver within the Philippines.",
+          next: ["Where are you located?", "How long does shipping take?"],
+        },
+        {
+          text: "How long does shipping take?",
+          response: "Shipping generally takes 3-7 business days depending on your location within the Philippines.",
+          next: ["Do you offer free shipping?", "Can I track my order?"],
+        },
+        {
+          text: "Can I track my order?",
+          response: "You can track your order in your Profile under the 'My Order' section.",
+          next: ["How long does shipping take?", "Do you offer free shipping?"],
         },
         {
           text: "Do you offer free shipping?",
           response: "Yes, we offer free shipping on orders over ₱1000.",
-          next: ["What are your services?", "What payment methods do you accept?"],
+          next: ["How long does shipping take?", "Can I track my order?"],
+        },
+        {
+          text: "What payment methods do you accept?",
+          response: "We accept Gcash, Cash On Delivery (COD), and Pickup.",
+          next: ["Do you offer any promotions or discounts?", "Can I cancel my order?"],
         },
         {
           text: "Can I cancel my order?",
           response: "Orders can be canceled within 24 hours of purchase.",
-          next: ["What are your services?", "What payment methods do you accept?"],
+          next: ["What payment methods do you accept?", "How do I track my order?"],
+        },
+        {
+          text: "What is your mission?",
+          response: "Our mission is to provide the highest quality aluminum products and ensure customer satisfaction through reliable service and innovation.",
+          next: ["What is your vision?", "What industries do you serve?"],
+        },
+        {
+          text: "What is your vision?",
+          response: "Our vision is to be a global leader in providing sustainable and high-performance aluminum products.",
+          next: ["What is your mission?", "What industries do you serve?"],
+        },
+        {
+          text: "What industries do you serve?",
+          response: "We serve various industries, including construction, manufacturing, oil and gas, automotive, and more.",
+          next: ["What is your mission?", "What products do you offer?"],
+        },
+        {
+          text: "How long have you been in business?",
+          response: "We have been in business for over 10 years, providing high-quality products and services to our customers.",
+          next: ["What industries do you serve?", "Can I work with you?"],
+        },
+        {
+          text: "Can I work with you?",
+          response: "Yes, we are always looking for passionate individuals to join our team. Please visit our careers page for more information.",
+          next: ["Are you hiring?", "How long have you been in business?"],
+        },
+        {
+          text: "Are you hiring?",
+          response: "We are currently hiring for several positions. Please check our website for open job listings.",
+          next: ["Can I work with you?", "What is your mission?"],
+        },
+        {
+          text: "How can I contact customer support?",
+          response: "You can reach customer support by emailing support@victory-one.com or calling our hotline at 123-456-7890.",
+          next: ["What is your refund policy?", "What is your return policy?"],
+        },
+        {
+          text: "Do you have an FAQ page?",
+          response: "Yes, we have an FAQ page where you can find answers to common questions. You can visit it on our website.",
+          next: ["How can I contact customer support?", "What is your refund policy?"],
+        },
+        {
+          text: "What is your refund policy?",
+          response: "We offer refunds within 30 days of purchase, provided the product is in original condition.",
+          next: ["How can I contact customer support?", "Do you have an FAQ page?"],
+        },
+        {
+          text: "Do you offer any promotions or discounts?",
+          response: "We frequently offer promotions and discounts. Please subscribe to our newsletter to stay updated.",
+          next: ["What payment methods do you accept?", "Can I get a discount for bulk purchases?"],
+        },
+        {
+          text: "Can I get a discount for bulk purchases?",
+          response: "Yes, we offer discounts for bulk orders. Please contact us directly to discuss your requirements.",
+          next: ["What payment methods do you accept?", "How can I place an order?"],
         },
       ],
       currentQuestions: [],
@@ -103,17 +180,22 @@ export default {
   created() {
     this.displayBotMessage("Hi! How can I help you today?", 2000);
     this.resetQuestions();
+
+    // Initialize Fuse.js for fuzzy matching
+    this.fuse = new Fuse(this.allQuestions, {
+      keys: ["text"],  // Ensure we're searching the text property of questions
+      threshold: 0.3, // Lower threshold for more lenient matching
+      includeScore: true,
+    });
   },
   methods: {
     resetQuestions() {
       this.currentQuestions = this.allQuestions.slice(0, 3);
     },
     handleQuestionClick(question) {
-      // Add the user's question to the chat
       this.messages.push({ type: "user", text: question.text });
-      // Display typing indicator and then bot response
       this.displayBotMessage(question.response);
-      // Update current questions based on the selected question's next array
+
       const nextQuestions = question.next.map((text) =>
         this.allQuestions.find((q) => q.text === text)
       );
@@ -121,39 +203,32 @@ export default {
     },
     handleSend() {
       if (this.userInput.trim()) {
-        // Add the user's input to the chat
-        const userText = this.userInput.trim();
-        this.messages.push({ type: "user", text: userText });
+        const userText = this.userInput.trim().toLowerCase(); // Ensure case-insensitive comparison
+        this.messages.push({ type: "user", text: this.userInput });
 
-        // Check for matching questions
-        const matchedQuestion = this.allQuestions.find((question) =>
-          question.text.toLowerCase().includes(userText.toLowerCase())
-        );
+        // Search for the best match using Fuse.js
+        const result = this.fuse.search(userText);
 
-        if (matchedQuestion) {
-          // Display matched question's response
+        if (result.length > 0) {
+          const matchedQuestion = result[0].item;
           this.displayBotMessage(matchedQuestion.response);
+
           const nextQuestions = matchedQuestion.next.map((text) =>
             this.allQuestions.find((q) => q.text === text)
           );
           this.currentQuestions = nextQuestions.length ? nextQuestions : this.allQuestions.slice(0, 3);
         } else {
-          // Display default response
-          this.displayBotMessage("I'm sorry, I didn't understand that. Could you rephrase?");
+          this.displayBotMessage("That's an interesting question! It's not available in the system right now, but feel free to ask anything else, and I'll do my best to assist you.");
         }
 
-        // Clear the input field
         this.userInput = "";
       }
     },
-    displayBotMessage(messageText, delay = 2000) {
+    displayBotMessage(messageText, delay = 3000) {
       this.messages.push({ type: "typing" });
       setTimeout(() => {
-        // Remove typing indicator
         this.messages.pop();
-        // Add bot message
         this.messages.push({ type: "bot", text: messageText });
-        // Scroll to the bottom of the chat
         this.$nextTick(() => {
           const chatBox = this.$el.querySelector(".chat-box");
           chatBox.scrollTop = chatBox.scrollHeight;
@@ -163,6 +238,7 @@ export default {
   },
 };
 </script>
+
 
 <style scoped>
 .chat-container {
@@ -176,6 +252,8 @@ export default {
   background-color: #f9f9f9;
   border-radius: 15px;
   padding: 20px;
+  height: 320px;
+  overflow-y: auto;
 }
 
 .message-bubble {
@@ -184,14 +262,21 @@ export default {
   max-width: 80%;
   border-radius: 20px;
   word-wrap: break-word;
+  /* Ensures long words break correctly */
+  white-space: normal;
+  /* Ensures multi-line text */
+  overflow-wrap: break-word;
+  /* For better handling of long unbreakable words */
 }
 
 .bot-bubble {
   background-color: #4CAF50;
+  height: fit-content;
 }
 
 .user-bubble {
   background-color: #008CBA;
+  height: fit-content;
 }
 
 .typing-bubble {
