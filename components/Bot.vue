@@ -10,10 +10,14 @@
     <v-row>
       <v-col cols="12">
         <!-- Chat Box Section -->
-        <div class="chat-box" style="height: 320px; overflow-y: auto; padding: 20px; background: #f9f9f9; border-radius: 15px;">
+        <div class="chat-box"
+          style="height: 320px; overflow-y: auto; padding: 20px; background: #f9f9f9; border-radius: 15px;">
           <div v-for="(message, index) in messages" :key="index" class="mb-3">
             <div v-if="message.type === 'bot'" class="bot-message">
               <v-chip class="message-bubble bot-bubble" color="primary" dark>{{ message.text }}</v-chip>
+            </div>
+            <div v-else-if="message.type === 'typing'" class="typing-indicator">
+              <v-chip class="message-bubble typing-bubble" color="grey lighten-2">Typing...</v-chip>
             </div>
             <div v-else class="user-message">
               <v-chip class="message-bubble user-bubble" color="teal" dark>{{ message.text }}</v-chip>
@@ -22,40 +26,29 @@
         </div>
       </v-col>
 
-      <!-- Dropdown for Categories -->
-      <v-col cols="12" class="title-btn text-center">
-        <h4 class="category-label">Choose a Question Category</h4>
+      <!-- Question Chips Section -->
+      <v-col cols="12" class="mt-4">
+        <div class="question-options">
+          <v-chip v-for="(question, index) in currentQuestions" :key="index" class="mr-2 mb-2" color="blue lighten-2"
+            dark @click="handleQuestionClick(question)">
+            {{ question.text }}
+          </v-chip>
+        </div>
       </v-col>
 
+      <!-- Input Box and Send Button -->
       <v-col cols="12" class="mt-4">
-        <v-select
-          v-model="selectedCategory"
-          :items="categories"
-          item-text="name"
-          item-value="name"
-          label="Select Category"
-          return-object
-          @change="handleCategoryChange"
-          outlined
-          dense
-          class="category-select"
-        ></v-select>
-      </v-col>
-
-      <!-- Dropdown for Questions -->
-      <v-col cols="12" class="mt-4">
-        <v-select
-          v-model="selectedQuestion"
-          :items="filteredQuestions"
-          item-text="text"
-          item-value="text"
-          label="Select Question"
-          return-object
-          @change="handleQuestionClick"
-          outlined
-          dense
-          class="question-select"
-        ></v-select>
+        <v-row align="center">
+          <v-col cols="9">
+            <v-text-field v-model="userInput" placeholder="Type your message..." outlined dense
+              class="chat-input"></v-text-field>
+          </v-col>
+          <v-col cols="3">
+            <v-btn color="primary" @click="handleSend" elevation="2" class="send-btn">
+              <v-icon>mdi-send</v-icon>
+            </v-btn>
+          </v-col>
+        </v-row>
       </v-col>
     </v-row>
   </v-container>
@@ -65,48 +58,107 @@
 export default {
   data() {
     return {
-      messages: [
-        { type: "bot", text: "Hi! How can I help you today?" },
+      messages: [],
+      allQuestions: [
+        {
+          text: "What are your services?",
+          response: "We provide ordering services!",
+          next: ["Where are you located?", "How do I track my order?"],
+        },
+        {
+          text: "What payment methods do you accept?",
+          response: "We accept Gcash, Cash On Delivery, and Pickup.",
+          next: ["Do you offer free shipping?", "Can I cancel my order?"],
+        },
+        {
+          text: "Do you ship internationally?",
+          response: "Currently, we do not offer international shipping.",
+          next: ["What are your services?", "What payment methods do you accept?"],
+        },
+        {
+          text: "Where are you located?",
+          response: "We are located in San Matias, San Fernando, Pampanga.",
+          next: ["What are your services?", "What payment methods do you accept?"],
+        },
+        {
+          text: "How do I track my order?",
+          response: "You can track your order in your Profile then there's a list saying 'My Order' section.",
+          next: ["Do you ship internationally?", "Can I cancel my order?"],
+        },
+        {
+          text: "Do you offer free shipping?",
+          response: "Yes, we offer free shipping on orders over ₱1000.",
+          next: ["What are your services?", "What payment methods do you accept?"],
+        },
+        {
+          text: "Can I cancel my order?",
+          response: "Orders can be canceled within 24 hours of purchase.",
+          next: ["What are your services?", "What payment methods do you accept?"],
+        },
       ],
-      selectedCategory: null,
-      selectedQuestion: null,
-      categories: [
-        { name: "General", questions: [
-          { text: "What are your services?", response: "We provide ordering services!" },
-          { text: "Where are you located?", response: "We are located in San Matias, San Fernando, Pampanga." },
-          { text: "How do I track my order?", response: "You can track your order in your Profile then there's a list saying 'My Order' section." },
-        ] },
-        { name: "Policies", questions: [
-          { text: "What payment methods do you accept?", response: "We accept Gcash, Cash On Delivery, and Pickup." },
-          { text: "Can I cancel my order?", response: "Orders can be canceled within 24 hours of purchase. Please go to your Profile then find the 'My Order' section and cancel the order." },
-        ] },
-        { name: "Shipping", questions: [
-          { text: "Do you ship internationally?", response: "No, we don’t offer international shipping to select countries." },
-          { text: "Do you offer free shipping?", response: "Yes, we offer free shipping on orders over ₱1000." },
-        ] },
-      ],
-      filteredQuestions: [],
+      currentQuestions: [],
+      userInput: "",
     };
   },
+  created() {
+    this.displayBotMessage("Hi! How can I help you today?", 2000);
+    this.resetQuestions();
+  },
   methods: {
-    handleCategoryChange() {
-      // Update filtered questions based on the selected category
-      if (this.selectedCategory) {
-        this.filteredQuestions = this.selectedCategory.questions;
-      } else {
-        this.filteredQuestions = [];
-      }
+    resetQuestions() {
+      this.currentQuestions = this.allQuestions.slice(0, 3);
     },
     handleQuestionClick(question) {
       // Add the user's question to the chat
       this.messages.push({ type: "user", text: question.text });
-      // Add the bot's response to the chat
-      this.messages.push({ type: "bot", text: question.response });
-      // Scroll to the bottom of the chat
-      this.$nextTick(() => {
-        const chatBox = this.$el.querySelector(".chat-box");
-        chatBox.scrollTop = chatBox.scrollHeight;
-      });
+      // Display typing indicator and then bot response
+      this.displayBotMessage(question.response);
+      // Update current questions based on the selected question's next array
+      const nextQuestions = question.next.map((text) =>
+        this.allQuestions.find((q) => q.text === text)
+      );
+      this.currentQuestions = nextQuestions.length ? nextQuestions : this.allQuestions.slice(0, 3);
+    },
+    handleSend() {
+      if (this.userInput.trim()) {
+        // Add the user's input to the chat
+        const userText = this.userInput.trim();
+        this.messages.push({ type: "user", text: userText });
+
+        // Check for matching questions
+        const matchedQuestion = this.allQuestions.find((question) =>
+          question.text.toLowerCase().includes(userText.toLowerCase())
+        );
+
+        if (matchedQuestion) {
+          // Display matched question's response
+          this.displayBotMessage(matchedQuestion.response);
+          const nextQuestions = matchedQuestion.next.map((text) =>
+            this.allQuestions.find((q) => q.text === text)
+          );
+          this.currentQuestions = nextQuestions.length ? nextQuestions : this.allQuestions.slice(0, 3);
+        } else {
+          // Display default response
+          this.displayBotMessage("I'm sorry, I didn't understand that. Could you rephrase?");
+        }
+
+        // Clear the input field
+        this.userInput = "";
+      }
+    },
+    displayBotMessage(messageText, delay = 2000) {
+      this.messages.push({ type: "typing" });
+      setTimeout(() => {
+        // Remove typing indicator
+        this.messages.pop();
+        // Add bot message
+        this.messages.push({ type: "bot", text: messageText });
+        // Scroll to the bottom of the chat
+        this.$nextTick(() => {
+          const chatBox = this.$el.querySelector(".chat-box");
+          chatBox.scrollTop = chatBox.scrollHeight;
+        });
+      }, delay);
     },
   },
 };
@@ -142,69 +194,33 @@ export default {
   background-color: #008CBA;
 }
 
-.user-message {
-  text-align: right; /* Align user messages to the right */
+.typing-bubble {
+  font-style: italic;
+  color: #757575;
 }
 
-.v-select {
+.user-message {
+  text-align: right;
+  /* Align user messages to the right */
+}
+
+.question-options {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.v-chip {
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.chat-input {
   width: 100%;
 }
 
-.v-btn.question-btn {
-  font-weight: 600;
-  border-radius: 20px;
-  font-size: 14px;
-  text-transform: none;
-  padding: 10px 15px;
-}
-
-.v-btn:focus {
-  box-shadow: none;
-}
-
-.title-btn h3 {
-  margin: 0;
-  font-size: 24px;
-  font-weight: bold;
-  color: #2C3E50;
-}
-
-.category-label {
-  font-size: 20px;
-  font-weight: 600;
-  color: #2C3E50;
-}
-
-h4 {
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.category-select,
-.question-select {
-  background-color: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.v-select .v-select__slot {
-  padding: 8px 12px;
-}
-
-.v-select .v-input__control {
-  padding: 4px 8px;
-}
-
-.v-select .v-select__selections {
-  color: #34495E;
-}
-
-.v-select .v-label {
-  font-size: 14px;
-  color: #34495E;
-}
-
-.v-select .v-select__menu {
-  border-radius: 8px;
+.send-btn {
+  width: 100%;
+  height: 100%;
 }
 </style>
