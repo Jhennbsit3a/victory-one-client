@@ -37,19 +37,20 @@
       </v-col>
 
       <!-- Input Box and Send Button -->
-      <v-col cols="12" class="mt-4">
-        <v-row align="center">
-          <v-col cols="9">
+      <v-col cols="12">
+        <v-row justify="center" align="center">
+          <v-col cols="9" class="pr-1">
             <v-text-field v-model="userInput" placeholder="Type your message..." outlined dense
               class="chat-input"></v-text-field>
           </v-col>
-          <v-col cols="3">
-            <v-btn color="primary" @click="handleSend" elevation="2" class="send-btn">
+          <v-col cols="3" class="pl-1">
+            <v-btn color="primary" @click="handleSend" elevation="2" class="send-btn" block>
               <v-icon>mdi-send</v-icon>
             </v-btn>
           </v-col>
         </v-row>
       </v-col>
+
     </v-row>
   </v-container>
 </template>
@@ -64,112 +65,102 @@ export default {
       allQuestions: [
         {
           text: "What are your services?",
-          response: "We provide ordering services and high-quality aluminum products, including seamless steel pipes, precision tubes, alloy pipes, and more.",
-          next: ["What products do you offer?", "What are your operating hours?"],
+          response: "We provide seamless ordering services, including a variety of delivery and pickup options for your convenience.",
+          next: ["Where are you located?", "How do I track my order?"],
         },
         {
           text: "What products do you offer?",
-          response: "We offer seamless steel pipes, precision tubes, alloy pipes, copper tubes, aluminum tubes, and other products used in various industries.",
+          response: "We offer seamless steel pipes, precision tubes, alloy pipes, copper tubes, aluminum tubes, and special-shaped pipes. Our products cater to industries like chemical processing, construction, hydraulic systems, oil and gas, and more.",
           next: ["What materials are your products made from?", "What are the applications of your products?"],
         },
         {
           text: "What materials are your products made from?",
-          response: "Our products are made from high-quality raw materials like steel, copper, and aluminum, ensuring durability and reliability.",
+          response: "We use high-quality raw materials such as steel, copper, and aluminum in the production of our products. Our materials are carefully selected to ensure durability and efficiency across various industries.",
           next: ["What products do you offer?", "What are the applications of your products?"],
         },
         {
           text: "What are the applications of your products?",
-          response: "Our products are used in fluid transport, boilers, heat exchangers, construction, oil pipelines, and many other industries.",
+          response: "Our products are used in industries such as fluid transport, chemical processing, boiler systems, heat exchangers, construction, and oil pipelines. They are designed for high performance and reliability in demanding applications.",
           next: ["What products do you offer?", "What materials are your products made from?"],
         },
         {
           text: "Where are you located?",
-          response: "We are located in San Matias, San Fernando, Pampanga.",
-          next: ["Do you ship internationally?", "How long does shipping take?"],
+          response: "Our main location is in San Matias, San Fernando, Pampanga. Feel free to visit us during business hours!",
+          next: ["What are your services?", "What payment methods do you accept?"],
         },
         {
           text: "Do you ship internationally?",
-          response: "Currently, we do not offer international shipping. We only deliver within the Philippines.",
+          response: "Currently, we focus on delivering within certain regions, but we are expanding our reach. For specific shipping inquiries, please contact us directly.",
           next: ["Where are you located?", "How long does shipping take?"],
         },
         {
           text: "How long does shipping take?",
-          response: "Shipping generally takes 3-7 business days depending on your location within the Philippines.",
+          response: "Shipping times vary depending on the destination, but typically range from 7 to 14 business days for most locations. For more detailed shipping information, please contact our customer service team.",
           next: ["Do you offer free shipping?", "Can I track my order?"],
         },
         {
-          text: "Can I track my order?",
-          response: "You can track your order in your Profile under the 'My Order' section.",
-          next: ["How long does shipping take?", "Do you offer free shipping?"],
+          text: "How do I track my order?",
+          response: "To track your order, simply go to the 'My Orders' section in your Profile. You'll find all updates and delivery information there.",
+          next: ["Do you ship internationally?", "Can I cancel my order?"],
         },
         {
           text: "Do you offer free shipping?",
-          response: "Yes, we offer free shipping on orders over ₱1000.",
+          response: "We offer free shipping on orders over a certain amount. Please check our website or contact customer service for the latest shipping policies.",
           next: ["How long does shipping take?", "Can I track my order?"],
         },
         {
           text: "What payment methods do you accept?",
-          response: "We accept Gcash, Cash On Delivery (COD), and Pickup.",
-          next: ["Do you offer any promotions or discounts?", "Can I cancel my order?"],
+          response: "We accept various payment methods, including bank transfer, Gcash, cash on delivery (COD) and Pickup. If you have any questions about payment options, feel free to contact us.",
+          next: ["How long does shipping take?", "Can I cancel my order?"],
         },
         {
           text: "Can I cancel my order?",
-          response: "Orders can be canceled within 24 hours of purchase.",
+          response: "Orders can be canceled within 24 hours of purchase. Please contact us as soon as possible if you wish to cancel or modify your order.",
           next: ["What payment methods do you accept?", "How do I track my order?"],
         },
         {
           text: "What is your mission?",
-          response: "Our mission is to provide the highest quality aluminum products and ensure customer satisfaction through reliable service and innovation.",
+          response: "Our mission is to deliver high-quality aluminum products and solutions that exceed customer expectations. We focus on sustainable practices, responsible sourcing, and continuous improvement.",
           next: ["What is your vision?", "What industries do you serve?"],
         },
         {
           text: "What is your vision?",
-          response: "Our vision is to be a global leader in providing sustainable and high-performance aluminum products.",
+          response: "Our vision is to be the leading provider of aluminum solutions, recognized for innovation and sustainability. We aim to contribute to a greener future through our products and services.",
           next: ["What is your mission?", "What industries do you serve?"],
         },
         {
           text: "What industries do you serve?",
-          response: "We serve various industries, including construction, manufacturing, oil and gas, automotive, and more.",
+          response: "We serve a variety of industries, including construction, chemical processing, hydraulic systems, oil and gas, automotive, and more. Our products are designed for diverse applications in these sectors.",
           next: ["What is your mission?", "What products do you offer?"],
         },
         {
           text: "How long have you been in business?",
-          response: "We have been in business for over 10 years, providing high-quality products and services to our customers.",
+          response: "We have been in business for several years, focusing on high-quality production and customer satisfaction. Over time, we have grown and expanded our capabilities to serve a global market.",
           next: ["What industries do you serve?", "Can I work with you?"],
         },
         {
           text: "Can I work with you?",
-          response: "Yes, we are always looking for passionate individuals to join our team. Please visit our careers page for more information.",
-          next: ["Are you hiring?", "How long have you been in business?"],
-        },
-        {
-          text: "Are you hiring?",
-          response: "We are currently hiring for several positions. Please check our website for open job listings.",
-          next: ["Can I work with you?", "What is your mission?"],
+          response: "We are always looking for talented individuals to join our team. Please visit our careers page for current job openings.",
+          next: ["How can I contact customer support?", "How long have you been in business?"],
         },
         {
           text: "How can I contact customer support?",
-          response: "You can reach customer support by emailing support@victory-one.com or calling our hotline at 123-456-7890.",
+          response: "You can reach our customer support team via email at support@victoryone.com or call us at 123-456-7890. We are happy to assist you with any inquiries.",
           next: ["What is your refund policy?", "What is your return policy?"],
         },
         {
           text: "Do you have an FAQ page?",
-          response: "Yes, we have an FAQ page where you can find answers to common questions. You can visit it on our website.",
+          response: "Yes, we have an FAQ page on our website that answers common questions. Please visit the FAQ section for more details.",
           next: ["How can I contact customer support?", "What is your refund policy?"],
         },
         {
           text: "What is your refund policy?",
-          response: "We offer refunds within 30 days of purchase, provided the product is in original condition.",
+          response: "We offer refunds for products returned in their original condition within 30 days of purchase. Please contact customer support for further details.",
           next: ["How can I contact customer support?", "Do you have an FAQ page?"],
         },
         {
-          text: "Do you offer any promotions or discounts?",
-          response: "We frequently offer promotions and discounts. Please subscribe to our newsletter to stay updated.",
-          next: ["What payment methods do you accept?", "Can I get a discount for bulk purchases?"],
-        },
-        {
           text: "Can I get a discount for bulk purchases?",
-          response: "Yes, we offer discounts for bulk orders. Please contact us directly to discuss your requirements.",
+          response: "Yes, we offer discounts for bulk purchases. Please contact our sales team for more information and to discuss your requirements.",
           next: ["What payment methods do you accept?", "How can I place an order?"],
         },
       ],
@@ -229,10 +220,6 @@ export default {
       setTimeout(() => {
         this.messages.pop();
         this.messages.push({ type: "bot", text: messageText });
-        this.$nextTick(() => {
-          const chatBox = this.$el.querySelector(".chat-box");
-          chatBox.scrollTop = chatBox.scrollHeight;
-        });
       }, delay);
     },
   },
@@ -302,10 +289,10 @@ export default {
 
 .chat-input {
   width: 100%;
+  padding-top: 24px;
 }
 
 .send-btn {
   width: 100%;
-  height: 100%;
 }
 </style>
