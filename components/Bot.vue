@@ -158,24 +158,20 @@ export default {
           response: "We offer refunds for products returned in their original condition within 30 days of purchase. Please contact customer support for further details.",
           next: ["How can I contact customer support?", "Do you have an FAQ page?"],
         },
-        {
-          text: "Can I get a discount for bulk purchases?",
-          response: "Yes, we offer discounts for bulk purchases. Please contact our sales team for more information and to discuss your requirements.",
-          next: ["What payment methods do you accept?", "How can I place an order?"],
-        },
       ],
       currentQuestions: [],
       userInput: "",
+      fuse: null,
     };
   },
   created() {
-    this.displayBotMessage("Hi! How can I help you today?", 2000);
+    this.displayBotMessage("Hi! How can I help you today?", 1000);
     this.resetQuestions();
 
     // Initialize Fuse.js for fuzzy matching
     this.fuse = new Fuse(this.allQuestions, {
-      keys: ["text"],  // Ensure we're searching the text property of questions
-      threshold: 0.3, // Lower threshold for more lenient matching
+      keys: ["text"], // Ensure the entire question text is analyzed
+      threshold: 0.4, // Set a moderate threshold for meaningful matches
       includeScore: true,
     });
   },
@@ -189,15 +185,16 @@ export default {
 
       const nextQuestions = question.next.map((text) =>
         this.allQuestions.find((q) => q.text === text)
-      );
+      ).filter(Boolean); // Ensure no undefined values are present
+
       this.currentQuestions = nextQuestions.length ? nextQuestions : this.allQuestions.slice(0, 3);
     },
     handleSend() {
       if (this.userInput.trim()) {
-        const userText = this.userInput.trim().toLowerCase(); // Ensure case-insensitive comparison
+        const userText = this.userInput.trim().toLowerCase(); // Use the entire input for matching
         this.messages.push({ type: "user", text: this.userInput });
 
-        // Search for the best match using Fuse.js
+        // Use Fuse.js to search for the best match
         const result = this.fuse.search(userText);
 
         if (result.length > 0) {
@@ -206,16 +203,20 @@ export default {
 
           const nextQuestions = matchedQuestion.next.map((text) =>
             this.allQuestions.find((q) => q.text === text)
-          );
+          ).filter(Boolean); // Ensure no undefined values
+
           this.currentQuestions = nextQuestions.length ? nextQuestions : this.allQuestions.slice(0, 3);
         } else {
-          this.displayBotMessage("That's an interesting question! It's not available in the system right now, but feel free to ask anything else, and I'll do my best to assist you.");
+          // Friendly fallback for unmatched inputs
+          this.displayBotMessage(
+            "That's an interesting question! It's not available in the system right now, but feel free to ask anything else, and I'll do my best to assist you."
+          );
         }
 
-        this.userInput = "";
+        this.userInput = ""; // Clear user input field
       }
     },
-    displayBotMessage(messageText, delay = 3000) {
+    displayBotMessage(messageText, delay = 2000) {
       this.messages.push({ type: "typing" });
       setTimeout(() => {
         this.messages.pop();
