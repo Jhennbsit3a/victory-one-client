@@ -160,7 +160,7 @@ export default {
             // Delay for loading effect before opening dialog
             setTimeout(() => {
               // Check if payment method is GCash
-              if (this.orderData.paymentMethod === 'GCash') {
+              if (this.orderData.paymentMethod === 'Gcash') {
                 this.openGcashDialog(); // Open GCash dialog
               } else {
                 //this.openGcashDialog(); // Open GCash dialog
