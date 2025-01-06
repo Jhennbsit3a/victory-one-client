@@ -163,8 +163,8 @@ export default {
               if (this.orderData.paymentMethod === 'GCash') {
                 this.openGcashDialog(); // Open GCash dialog
               } else {
-                this.openGcashDialog(); // Open GCash dialog
-                //this.openQrCodeDialog(); // Proceed to QR code directly
+                //this.openGcashDialog(); // Open GCash dialog
+                this.openQrCodeDialog(); // Proceed to QR code directly
               }
               this.loading = false; // Hide loading animation
             }, 2000); // Set a delay (2 seconds) for the loading animation
