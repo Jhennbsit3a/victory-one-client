@@ -356,7 +356,7 @@ export default {
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         // The user is authenticated
-        this.user.email = user.email;
+        // this.user.email = user.email;
         this.emailVerified = user.emailVerified;  // Update the emailVerified status
 
         // Fetch the user data from Firestore
@@ -368,6 +368,7 @@ export default {
           this.user.name = user.displayName || `${userData.firstName} ${userData.lastName}`;
           this.user.phone = userData.phone || '';
           this.user.address = userData.address || '';
+          this.user.email = userData.email;
           this.user.profilePicture = userData.profilePicture || user.photoURL;
         } else {
           console.log('No user document found in Firestore!');
