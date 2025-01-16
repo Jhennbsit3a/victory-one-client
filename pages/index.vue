@@ -25,7 +25,7 @@
 
             <v-card-title class="d-flex justify-space-between align-center">
               <span>{{ product.name }}</span>
-              <v-btn icon class="cart-icon" @click.stop="goToProduct(product.id)">
+              <v-btn icon class="cart-icon" @click.stop="addToCart(product, quantity)">
                 <v-icon style="color: #FFA900;">mdi-cart-minus</v-icon>
               </v-btn>
             </v-card-title>
@@ -65,7 +65,7 @@
 </template>
 
 <script>
-import { firestore } from '~/plugins/firebase';
+import { firestore, auth } from '~/plugins/firebase';
 import { collection, getDocs, addDoc, query, where, updateDoc, onSnapshot } from 'firebase/firestore'; // Import query and where
 import { getAuth } from 'firebase/auth'; // Import Firebase Authentication
 
@@ -74,6 +74,7 @@ export default {
     return {
       products: [],
       itemList: [],
+      quantity: 1,
       loading: false,  // Add a loading state
     };
   },
@@ -126,40 +127,52 @@ export default {
     handleItemClick(item) {
       this.$router.push({ path: '/gallery', query: { category: item.ProductType } });
     },
-    async addToCart(product) {
-      this.loading = true;
-      const auth = getAuth();
-      const user = auth.currentUser;
-
-      if (!user) {
-        this.loading = false;
-        this.$router.push('/sign/signin');
-        return;
-      }
-
+    async addToCart(product, quantity) {
       try {
-        const cartRef = collection(firestore, 'Cart');
-        const cartQuery = query(cartRef, where("userID", "==", user.uid), where("ProductID", "==", product.id));
-        const cartSnapshot = await getDocs(cartQuery);
+        const user = auth.currentUser; // Get the current logged-in user
 
-        if (!cartSnapshot.empty) {
-          const cartItemDoc = cartSnapshot.docs[0];
-          const currentQuantity = cartItemDoc.data().Quantity;
-          await updateDoc(cartItemDoc.ref, {
-            Quantity: currentQuantity + 1,
-          });
-        } else {
-          await addDoc(cartRef, {
-            ProductID: product.id,
-            Quantity: 1,
-            userID: user.uid,
-          });
+        if (!user) {
+          // Redirect to sign-in page if the user is not authenticated
+          this.$router.push('/sign/signin');
+          return;
         }
+        // Proceed if the user is authenticated
+        const cartRef = collection(firestore, 'Cart'); // Reference to the Cart collection
+
+        // Create a query to check if the product already exists in the user's cart
+        const productQuery = query(
+          cartRef,
+          where('userID', '==', user.uid),
+          where('ProductID', '==', product.id)
+        );
+
+        const querySnapshot = await getDocs(productQuery); // Get query snapshot
+
+        if (querySnapshot.empty) {
+          // If no existing product, add the product to the cart
+          await addDoc(cartRef, {
+            userID: user.uid, // Add user ID
+            ProductID: product.id, // Add Product ID       
+            Quantity: quantity, // Add Quantity      
+          });
+
+          console.log('Product added to cart:', product.ProductName); // Log success message
+        } else {
+          // If the product already exists in the cart, update the quantity
+          const cartDoc = querySnapshot.docs[0]; // Get the first matching document
+          const updatedQuantity = cartDoc.data().Quantity + quantity; // Update the quantity
+
+          await updateDoc(cartDoc.ref, {
+            Quantity: updatedQuantity, // Update the quantity field
+          });
+
+          console.log('Cart updated with new quantity:', updatedQuantity); // Log success message
+        }
+
+        // Update the cart count
+        this.cartCount += quantity;
       } catch (error) {
-        console.error("Error adding to cart:", error);
-      }
-      finally {
-        this.loading = false;
+        console.error('Error adding or updating product in cart:', error); // Log any errors during adding or updating
       }
     },
     goToProduct(productId) {
