@@ -62,12 +62,12 @@
         </template>
 
         <v-list>
-          <v-list-item @click="ProfilePage">
+          <v-list-item @click="ProfilePage" :disabled="!isUserLoggedIn">
             <v-list-item-title>Profile</v-list-item-title>
           </v-list-item>
 
-          <v-list-item @click="openLogoutConfirmation" :disabled="!isUserLoggedIn">
-            <v-list-item-title>Logout</v-list-item-title>
+          <v-list-item @click="proceedToLogin">
+            <v-list-item-title>{{LoginStatus}}</v-list-item-title>
           </v-list-item>
         </v-list>
       </v-menu>
@@ -227,6 +227,7 @@ export default {
   name: 'DefaultLayout',
   data() {
     return {
+      LoginStatus:"Log in",
       loginPromptDialog: false, // Controls the login prompt dialog
       categories: ['Category 1', 'Category 2', 'Category 3'],
       drawer: false,
@@ -312,7 +313,8 @@ export default {
     },
     proceedToLogin() {
       this.loginPromptDialog = false; // Close the login prompt dialog
-      this.$router.push('/sign/signin'); // Redirect to the sign-in page
+      this.logout();
+      
     },
     async getCategories() {
       try {
@@ -332,9 +334,10 @@ export default {
       const auth = getAuth();
       signOut(auth)
         .then(() => {
-          this.isUserLoggedIn = false;
+          // this.isUserLoggedIn = false;
           this.userID = '';
-          this.$router.push('/');
+          // this.$router.push('/');
+          this.$router.push('/sign/signin'); // Redirect to the sign-in page
           this.logoutDialog = false;
         })
         .catch((error) => {
@@ -354,7 +357,7 @@ export default {
             await this.fetchUserProfilePicture(user.uid); // Fetch profile picture from the Firestore Users collection
           }
           this.getCartItems(); // Fetch cart items if user is logged in
-
+          this.LoginStatus = "Log out"
         } else {
           this.isUserLoggedIn = false;
           this.userID = '';
