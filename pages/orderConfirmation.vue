@@ -64,7 +64,7 @@
             </div>
           </v-card-text>
           <v-card-actions>
-            <v-btn @click="openQrCodeDialog" color="green">Proceed to QR Code</v-btn>
+            <v-btn @click="goBack" color="green">Done</v-btn>
             <v-btn @click="closeGcashDialog" color="red">Cancel</v-btn>
           </v-card-actions>
         </v-card>
