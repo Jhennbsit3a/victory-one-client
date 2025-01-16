@@ -15,7 +15,16 @@
             <v-simple-table>
               <thead>
                 <tr>
-                  <th>Select</th> <!-- Added Select header -->
+                  <th>
+                    Select all
+                    <v-checkbox
+                      class="small-checkbox"
+                      hide-details
+                      small
+                      :value="isAllSelected"
+                      @change="toggleSelectAll"
+                    ></v-checkbox>
+                  </th>
                   <th>Item</th>
                   <th>Price</th>
                   <th>Quantity</th>
@@ -111,6 +120,10 @@ export default {
     };
   },
   computed: {
+        // Determine if all items are selected
+    isAllSelected() {
+      return this.cartItems.length > 0 && this.cartItems.every((item) => item.selected);
+    },
     subtotal() {
       return this.cartItems
         .filter(item => item.selected)
@@ -136,6 +149,12 @@ export default {
     });
   },
   methods: {
+    toggleSelectAll() {
+      const newValue = !this.isAllSelected; // Toggle selection state
+      this.cartItems.forEach((item) => {
+        item.selected = newValue; // Update the selected state for all items
+      });
+    },
     async fetchCartItems() {
       const user = auth.currentUser; // Get the current user
       if (!user) {
