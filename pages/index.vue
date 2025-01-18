@@ -153,7 +153,8 @@ export default {
           await addDoc(cartRef, {
             userID: user.uid, // Add user ID
             ProductID: product.id, // Add Product ID       
-            Quantity: quantity, // Add Quantity      
+            Quantity: quantity, // Add Quantity
+            orderStatus: "Not Confirmed"    
           });
 
           console.log('Product added to cart:', product.ProductName); // Log success message

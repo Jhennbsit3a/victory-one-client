@@ -178,7 +178,7 @@ export default {
           description: data.Description || '',
         };
       });
-
+      // console.table(products);
       // Real-time listener for cart items
       this.cartItemsUnsub = onSnapshot(
         cartRef,
@@ -188,6 +188,7 @@ export default {
           cartSnapshot.docs.forEach((doc) => {
             const data = doc.data();
             const productID = data.ProductID;
+            // console.table(data)
 
             // Only add items if they are not confirmed orders
             if (data.orderStatus !== 'Confirmed' && data.userID === user.uid) {
@@ -210,6 +211,7 @@ export default {
 
           // Update the cart items in real-time
           this.cartItems = Object.values(groupedItems);
+          // console.log(this.cartItems)
         },
         (error) => {
           console.error('Error listening to cart items:', error);

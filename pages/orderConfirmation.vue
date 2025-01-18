@@ -95,7 +95,7 @@
 <script>
 import QRCode from 'qrcode';
 import { firestore } from '~/plugins/firebase';
-import { collection, addDoc, getDocs, query, where } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, updateDoc, doc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
 export default {
@@ -136,9 +136,10 @@ export default {
     async confirmOrder() {
       try {
         this.loading = true; // Show loading animation
+        const auth = getAuth();
+        const user = auth.currentUser;
         if (this.orderData) {
-          const auth = getAuth();
-          const user = auth.currentUser;
+
           if (user) {
             const orderRef = collection(firestore, 'Orders');
             const orderDocRef = await addDoc(orderRef, {
@@ -173,6 +174,18 @@ export default {
             this.loading = false;
           }
         }
+        const cartRef = collection(firestore, "Cart"); // Reference to the Cart collection
+        const q = query(cartRef, where("userID", "==", user.uid)); // Query to find matching userID
+        const querySnapshot = await getDocs(q); // Fetch matching documents
+
+        // Update the orderStatus of all matched documents
+        const updatePromises = querySnapshot.docs.map((docSnapshot) => {
+          const docRef = doc(firestore, "Cart", docSnapshot.id); // Reference to the specific document
+          return updateDoc(docRef, { orderStatus: "Confirmed" });
+        });
+
+        await Promise.all(updatePromises); // Wait for all updates to complete
+        console.log("Order status updated successfully for all matching items.");
       } catch (error) {
         console.error('Error confirming order:', error);
         this.loading = false;
