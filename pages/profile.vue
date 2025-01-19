@@ -182,7 +182,9 @@
                   <span class="header-title">Your Address</span>
                 </v-list-item-title>
                 <v-list-item-subtitle>
-                  {{ user.address }}
+                  <span class="info-title">
+                    {{ address }}
+                  </span>
                 </v-list-item-subtitle>
               </v-list-item-content>
               <v-list-item-action>
@@ -330,6 +332,7 @@ export default {
         address: '',
         savedAddresses: [],
       },
+      address: '',
       hasOrders: false, // New property to track if user has orders
       showEditInfoDialog: false,  // New property to control Edit Info modal visibility
       showAddressDialog: false,
@@ -362,14 +365,34 @@ export default {
         // Fetch the user data from Firestore
         const userRef = doc(firestore, 'Users', user.uid);
         const userDoc = await getDoc(userRef);
+              // Displaying firestore Data for checking
+        const ordersRef = collection(firestore, "Orders");
+
+        const querySnapshot = await getDocs(ordersRef);
+          
+          const ordersData = [];
+          querySnapshot.forEach((doc) => {
+            ordersData.push({ id: doc.id, ...doc.data() });
+          });
+          // console.table(user.uid)
+            // Log deliveryAddress for each order
+          ordersData.some((order) => {
+            if(order.userId === user.uid){
+              // console.log(`Order ID: ${order.userId}, Delivery Address: ${order.deliveryAddress}`);
+              this.address = order.deliveryAddress;
+              // console.log(this.user.address)
+              return true;
+            }
+          });
+        // Displaying firestore Data for checking
 
         if (userDoc.exists()) {
           const userData = userDoc.data();
           this.user.name = user.displayName || `${userData.firstName} ${userData.lastName}`;
           this.user.phone = userData.phone || '';
-          this.user.address = userData.address || '';
           this.user.email = userData.email;
           this.user.profilePicture = userData.profilePicture || user.photoURL;
+          // console.log(userDoc.data())
         } else {
           console.log('No user document found in Firestore!');
         }
