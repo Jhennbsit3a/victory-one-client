@@ -2,7 +2,7 @@
   <v-container>
     <v-card>
       <v-card-title>
-        My Previous Transactions
+        Transactions History
         <v-progress-circular
           v-if="loading"
           indeterminate
