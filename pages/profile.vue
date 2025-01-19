@@ -122,7 +122,7 @@
 
               <!-- Verify Email Button -->
               <v-list-item-action>
-                <v-btn style="background-color: #ffa900; color: white;" @click="verifyEmail">
+                <v-btn style="background-color: #ffa900; color: white;" :disabled="emailVerified === true" @click="verifyEmail">
                   Verify Email
                 </v-btn>
               </v-list-item-action>
