@@ -6,15 +6,15 @@
         <h2>Checkout</h2>
 
         <!-- Cart Items -->
-        <div v-for="item in cartItems" :key="item.id" class="cart-item">
-          <img :src="item.image || defaultImage" alt="Product Image" class="cart-item-image" />
-          <div class="cart-item-details">
-            <p><strong>{{ item.productName }}</strong></p>
-            <p class="price">Price: ₱{{ item.price.toFixed(2) }}</p>
-            <p>Quantity: {{ item.Quantity }}</p>
-            <p class="total">Total: ₱{{ (item.price * item.Quantity).toFixed(2) }}</p>
-          </div>
+      <div v-for="item in cartItems" :key="item.id" class="cart-item">
+        <img :src="item.image || defaultImage" alt="Product Image" class="cart-item-image" />
+        <div class="cart-item-details">
+          <p><strong>{{ item.productName }}</strong></p>
+          <p class="price">Price: ₱{{ (item.price || 0).toFixed(2) }}</p>
+          <p>Quantity: {{ item.Quantity || 1 }}</p>
+          <p class="total">Total: ₱{{ ((item.price || 0) * (item.Quantity || 1)).toFixed(2) }}</p>
         </div>
+      </div>
 
         <!-- Delivery Address Section -->
         <div class="delivery-section">
@@ -178,7 +178,11 @@ export default {
   methods: {
     async loadCartItems() {
       const items = JSON.parse(this.$route.query.items || '[]');
-      this.cartItems = items;
+      this.cartItems = items.map(item => ({
+        ...item,
+        price: parseFloat(item.price) || 0, // Convert price to a number and default to 0 if invalid
+        Quantity: item.Quantity || 1, // Ensure Quantity is a valid number
+      }));
       this.calculateTotals();
     },
     calculateTotals() {
@@ -357,6 +361,10 @@ export default {
     goBackToCart() {
       this.$router.push({ name: 'cart' });
     },
+  },
+  mounted() {
+    // Load the cart items when the component is mounted
+    this.loadCartItems();
   },
 };
 </script>

@@ -38,7 +38,7 @@
             <!-- See More and Buy Now buttons -->
             <v-card-actions class="d-flex justify-space-between">
               <span class="see-more" @click.stop="goToProduct(product.id)">See More..</span>
-              <v-btn class="buy-now-btn" @click.stop="buyNow(product)" :disabled="loading"
+              <v-btn class="buy-now-btn" @click.stop="buyNow(product, quantity)" :disabled="loading"
                 style="background-color: #FFA900; color: white;">
                 <template v-if="loading">
                   <v-progress-circular indeterminate size="24" color="white" />
@@ -176,15 +176,46 @@ export default {
         console.error('Error adding or updating product in cart:', error); // Log any errors during adding or updating
       }
     },
+    async buyNow(product, quantity) {
+    try {
+      const user = auth.currentUser;
+
+      if (!user) {
+        // Redirect to sign-in if the user is not authenticated
+        this.$router.push('/sign/signin');
+        return;
+      }
+
+      // Create a temporary cart item to pass to the checkout page
+      const cartItem = {
+        userID: user.uid,
+        ProductID: product.id,
+        productName: product.ProductName,
+        price: product.price,
+        Quantity: quantity,
+        image: product.image || this.defaultImage,
+      };
+
+      // Redirect to checkout page with cart item as query
+      this.$router.push({
+        path: '/checkout',
+        query: {
+          items: JSON.stringify([cartItem]), // Convert the cart item to a query string
+        },
+      });
+    } catch (error) {
+      console.error('Error processing Buy Now action:', error);
+    }
+  },
     goToProduct(productId) {
       this.$router.push(`/product/${productId}`);
     },
     goToGallery() {
       this.$router.push(`/gallery`);
     },
-    buyNow(product) {
-      this.goToProduct(product.id);
-    },
+    // buyNow(product) {
+    //   this.goToProduct(product.id);
+    // },
   },
 };
 </script>
