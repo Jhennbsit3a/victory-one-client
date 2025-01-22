@@ -136,14 +136,16 @@ export default {
           this.$router.push('/sign/signin');
           return;
         }
+
         // Proceed if the user is authenticated
         const cartRef = collection(firestore, 'Cart'); // Reference to the Cart collection
 
-        // Create a query to check if the product already exists in the user's cart
+        // Create a query to check if the product already exists in the user's cart and is not confirmed
         const productQuery = query(
           cartRef,
           where('userID', '==', user.uid),
-          where('ProductID', '==', product.id)
+          where('ProductID', '==', product.id),
+          where('orderStatus', '==', 'Not Confirmed') // Exclude confirmed items
         );
 
         const querySnapshot = await getDocs(productQuery); // Get query snapshot
@@ -152,9 +154,9 @@ export default {
           // If no existing product, add the product to the cart
           await addDoc(cartRef, {
             userID: user.uid, // Add user ID
-            ProductID: product.id, // Add Product ID       
+            ProductID: product.id, // Add Product ID
             Quantity: quantity, // Add Quantity
-            orderStatus: "Not Confirmed"    
+            orderStatus: "Not Confirmed" // Set initial status
           });
 
           console.log('Product added to cart:', product.ProductName); // Log success message
