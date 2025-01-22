@@ -122,8 +122,12 @@
 
               <!-- Verify Email Button -->
               <v-list-item-action>
-                <v-btn style="background-color: #ffa900; color: white;" :disabled="emailVerified === true" @click="verifyEmail">
-                  Verify Email
+                <v-btn 
+                  style="background-color: #ffa900; color: white;" 
+                  :disabled="emailVerified === true"
+                  @click="verifyEmail"
+                >
+                  {{ emailVerified ? "Verified" : "Verify Email" }}
                 </v-btn>
               </v-list-item-action>
             </v-list-item>
@@ -197,7 +201,7 @@
             <v-divider class="my-4"></v-divider>
 
             <!-- New Section for Saved Addresses -->
-            <v-list-item>
+            <!-- <v-list-item>
               <v-list-item-content>
                 <v-list-item-title>
                   <v-icon left color="#ffa900" style="font-size: 36px;">mdi-map-marker-outline</v-icon>
@@ -209,9 +213,9 @@
                   View Saved Addresses
                 </v-btn>
               </v-list-item-action>
-            </v-list-item>
+            </v-list-item> -->
 
-            <v-divider class="my-4"></v-divider>
+            <!-- <v-divider class="my-4"></v-divider> -->
 
             <!-- Confirmation Dialog -->
             <v-dialog v-model="showLogoutDialog" max-width="400">
@@ -343,6 +347,7 @@ export default {
         street: '',
         zip: '',
       },
+      // verified: 'Verified'
       emailVerified: false,  // Track if the email is verified
       showVerifyDialog: false,  // Control visibility of the verify email dialog
       idImage: null,            // To store the uploaded ID image
