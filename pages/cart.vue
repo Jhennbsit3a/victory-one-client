@@ -178,20 +178,22 @@ export default {
           description: data.Description || '',
         };
       });
-      // console.table(products);
+
       // Real-time listener for cart items
       this.cartItemsUnsub = onSnapshot(
         cartRef,
         (cartSnapshot) => {
           const groupedItems = {};
+          let itemCount = 0; // Initialize a counter for cart items
 
           cartSnapshot.docs.forEach((doc) => {
             const data = doc.data();
             const productID = data.ProductID;
-            // console.table(data)
 
             // Only add items if they are not confirmed orders
             if (data.orderStatus !== 'Confirmed' && data.userID === user.uid) {
+              itemCount += data.Quantity; // Increment item count for each item in the cart
+
               if (!groupedItems[productID]) {
                 groupedItems[productID] = {
                   id: doc.id,
@@ -209,9 +211,9 @@ export default {
             }
           });
 
-          // Update the cart items in real-time
+          // Update the cart items and cart item count in real-time
           this.cartItems = Object.values(groupedItems);
-          // console.log(this.cartItems)
+          this.cartItemCount = itemCount; // Update the cart item count dynamically
         },
         (error) => {
           console.error('Error listening to cart items:', error);

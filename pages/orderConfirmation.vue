@@ -40,7 +40,11 @@
         <div class="pricing-details">
           <div>
             <p><strong>Subtotal:</strong> ₱{{ orderData.subtotal.toFixed(2) }}</p>
-            <p><strong>Shipping Fee:</strong> ₱{{ orderData.tax.toFixed(2) }}</p>
+
+            <p v-if="paymentMethod === 'Pick up'">
+              <strong>Shipping Fee:</strong> ₱{{ orderData.tax.toFixed(2) }}
+            </p>
+
             <p><strong>Total:</strong> ₱{{ orderData.total.toFixed(2) }}</p>
           </div>
         </div>
@@ -106,6 +110,7 @@ export default {
       gcashDialog: false,  // Dialog visibility for GCash payment info
       orderId: null,       // Store the orderId after order creation
       loading: false,      // Loading state
+      paymentMethod:'',
     };
   },
   created() {
@@ -114,6 +119,7 @@ export default {
       this.orderData = JSON.parse(orderData);
       this.fetchProductImages();
     }
+    this.paymentMethod = this.orderData.paymentMethod
   },
   methods: {
     async fetchProductImages() {
@@ -157,14 +163,16 @@ export default {
 
             this.orderId = orderDocRef.id;
             this.orderData.orderId = this.orderId;
-
+            
             // Delay for loading effect before opening dialog
             setTimeout(() => {
               // Check if payment method is GCash
               if (this.orderData.paymentMethod === 'Gcash') {
                 this.openGcashDialog(); // Open GCash dialog
-              } else {
+              } else if(this.orderData.paymentMethod === 'Pick up'){
                 //this.openGcashDialog(); // Open GCash dialog
+                this.goBack();
+              }else{
                 this.openQrCodeDialog(); // Proceed to QR code directly
               }
               this.loading = false; // Hide loading animation

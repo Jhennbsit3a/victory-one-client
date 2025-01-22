@@ -45,9 +45,19 @@
 
       <v-spacer></v-spacer>
 
-      <v-btn icon @click="handleCartClick">
+      <!-- <v-btn icon @click="handleCartClick">
         <v-icon>mdi-cart-outline</v-icon>
         <v-badge v-if="cartItemCount > 0" color="red" :content="cartItemCount" overlap style="margin-bottom: 20px;">
+        </v-badge>
+      </v-btn> -->
+      <v-btn icon @click="handleCartClick">
+        <v-icon>mdi-cart-outline</v-icon>
+        <v-badge 
+          v-if="cartItemCount > 0" 
+          color="red" 
+          :content="cartItemCount" 
+          overlap 
+          style="margin-bottom: 20px;">
         </v-badge>
       </v-btn>
 
@@ -374,7 +384,14 @@ export default {
 
       // Real-time listener for cart items
       onSnapshot(cartQuery, (querySnapshot) => {
-        this.cartItemCount = querySnapshot.size; // Update cart item count dynamically
+        let itemCount = 0; // Initialize a counter for cart items
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          if (data.orderStatus !== 'Confirmed') {
+            itemCount += data.Quantity; // Count only unconfirmed items
+          }
+        });
+        this.cartItemCount = itemCount; // Update cart item count dynamically
       });
     },
     getCartItemsFromLocalStorage() {
