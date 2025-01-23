@@ -56,8 +56,18 @@
                 </template>
               </v-text-field>
 
+              <!-- Role Selection (optional)
+              <v-select v-model="selectedRole" :items="roleOptions" label="Are You a Business Owner?" style="margin-bottom: -15px;"></v-select> -->
               <!-- Role Selection (optional) -->
-              <v-select v-model="selectedRole" :items="roleOptions" label="Are You a Business Owner?" style="margin-bottom: -15px;"></v-select>
+              <v-radio-group
+                v-model="userResponse"
+                label="Are you a Business Owner?"
+                style="margin-bottom: -15px;"
+                @change="handleRoleSelection"
+              >
+                <v-radio label="Yes" value="Yes"></v-radio>
+                <v-radio label="No" value="No"></v-radio>
+              </v-radio-group>
 
               <v-btn @click="signUp" class="mt-4 primary-btn" block
                 style="background-color: #000; color: #fff; font-weight: bold;" :loading="loading">
@@ -123,6 +133,13 @@ export default {
     };
   },
   methods: {
+      handleRoleSelection() {
+      if (this.userResponse === "Yes") {
+        this.selectedRole = "Business Owner";
+      } else if (this.userResponse === "No") {
+        this.selectedRole = "customer";
+      }
+    },
     async signUp() {
       if (this.$refs.form.validate() && this.password === this.confirmPassword) {
         this.loading = true; // Start loading
