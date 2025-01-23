@@ -7,7 +7,7 @@
           <v-btn small color="primary" @click="viewDetails(item)">
             View Details
           </v-btn>
-          <v-btn small color="red" @click="openCancelDialog(item.orderId)" style="color: white;">
+          <v-btn v-if="checkstatus === false" small color="red" @click="openCancelDialog(item.orderId)" style="color: white;">
             Cancel Order
           </v-btn>
         </template>
@@ -114,6 +114,7 @@ export default {
         { text: "Status", value: "status" },
         { text: "Actions", value: "actions", sortable: false },
       ],
+      checkstatus: false,
       orders: [],
       dialogVisible: false,
       cancelDialogVisible: false, // To control the cancel confirmation dialog
@@ -125,7 +126,7 @@ export default {
         "Found a better price",
         "Not needed anymore",
         "Other"  // You can add more options as needed
-      ]
+      ],
     };
   },
   methods: {
@@ -181,6 +182,9 @@ export default {
               })
             );
             const userDetails = await this.fetchUserDetails(orderData.userId);
+            if(orderData.status === "Shipped"){
+                this.checkstatus = true;
+            }
             return {
               orderId: doc.id,
               productName: productNames.join(", "),
@@ -194,6 +198,7 @@ export default {
             };
           })
         );
+
         // Filter out orders with the status "Cancelled"
         this.orders = orders.filter(order => order.status !== "Cancelled");
       });

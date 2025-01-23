@@ -331,6 +331,9 @@ export default {
         const auth = getAuth();
         const user = auth.currentUser;
         if (user) {
+          // if(this.selectedPaymentMethod.method === 'Pick up'){
+          //   this.tax = 0;
+          // }
           const userId = user.uid;
           const orderData = {
             userId: userId,
