@@ -7,7 +7,7 @@
           <v-btn small color="primary" @click="viewDetails(item)">
             View Details
           </v-btn>
-          <v-btn v-if="checkstatus === false" small color="red" @click="openCancelDialog(item.orderId)" style="color: white;">
+          <v-btn v-if="!item.checkstatus" small color="red" @click="openCancelDialog(item.orderId)" style="color: white;">
             Cancel Order
           </v-btn>
         </template>
@@ -172,36 +172,40 @@ export default {
         where("userId", "==", userId)
       );
 
-      onSnapshot(ordersQuery, async (ordersSnapshot) => {
-        const orders = await Promise.all(
-          ordersSnapshot.docs.map(async (doc) => {
-            const orderData = doc.data();
-            const productNames = await Promise.all(
-              (orderData.cartItems || []).map(async (item) => {
-                return await this.fetchProductName(item.productID);
-              })
-            );
-            const userDetails = await this.fetchUserDetails(orderData.userId);
-            if(orderData.status === "Shipped"){
-                this.checkstatus = true;
-            }
-            return {
-              orderId: doc.id,
-              productName: productNames.join(", "),
-              total: orderData.total || 0,
-              estimatedDeliveryDate: orderData.estimatedDeliveryDate || "N/A",
-              paymentMethod: orderData.paymentMethod || "N/A",
-              deliveryAddress: orderData.deliveryAddress || "N/A",
-              status: orderData.status || "Pending",
-              userFirstName: userDetails.firstName,
-              userLastName: userDetails.lastName,
-            };
-          })
-        );
+    onSnapshot(ordersQuery, async (ordersSnapshot) => {
+      const orders = await Promise.all(
+        ordersSnapshot.docs.map(async (doc) => {
+          const orderData = doc.data();
+          const productNames = await Promise.all(
+            (orderData.cartItems || []).map(async (item) => {
+              return await this.fetchProductName(item.productID);
+            })
+          );
+          const userDetails = await this.fetchUserDetails(orderData.userId);
 
-        // Filter out orders with the status "Cancelled"
-        this.orders = orders.filter(order => order.status !== "Cancelled");
-      });
+          // Set `checkstatus` based on `orderData.status`
+          const isShipped = orderData.status === "Shipped" || orderData.status === "Delivered";
+          this.checkstatus = isShipped;
+
+          // Always return an order object
+          return {
+            orderId: doc.id,
+            productName: productNames.join(", "),
+            total: orderData.total || 0,
+            estimatedDeliveryDate: orderData.estimatedDeliveryDate || "N/A",
+            paymentMethod: orderData.paymentMethod || "N/A",
+            deliveryAddress: orderData.deliveryAddress || "N/A",
+            status: orderData.status || "Pending",
+            userFirstName: userDetails.firstName,
+            userLastName: userDetails.lastName,
+            checkstatus: isShipped, // Add checkstatus to the returned object for flexibility
+          };
+        })
+      );
+
+      // Filter out orders with the status "Cancelled"
+      this.orders = orders.filter(order => order.status !== "Cancelled");
+    });
     },
     viewDetails(order) {
       this.selectedOrder = order;
