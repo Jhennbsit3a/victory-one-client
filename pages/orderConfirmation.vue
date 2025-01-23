@@ -41,7 +41,7 @@
           <div>
             <p><strong>Subtotal:</strong> ₱{{ orderData.subtotal.toFixed(2) }}</p>
 
-            <p v-if="paymentMethod === 'Pick up'">
+            <p v-if="paymentMethod !== 'Pick up'">
               <strong>Shipping Fee:</strong> ₱{{ orderData.tax.toFixed(2) }}
             </p>
 
