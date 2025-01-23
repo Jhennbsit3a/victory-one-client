@@ -171,9 +171,9 @@ export default {
                 this.openGcashDialog(); // Open GCash dialog
               } else if(this.orderData.paymentMethod === 'Pick up'){
                 //this.openGcashDialog(); // Open GCash dialog
-                this.goBack();
-              }else{
                 this.openQrCodeDialog(); // Proceed to QR code directly
+              }else{
+                this.goBack();
               }
               this.loading = false; // Hide loading animation
             }, 2000); // Set a delay (2 seconds) for the loading animation
