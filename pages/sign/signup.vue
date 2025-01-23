@@ -62,7 +62,7 @@
               <v-radio-group
                 v-model="userResponse"
                 label="Are you a Business Owner?"
-                style="margin-bottom: -15px;"
+                
                 @change="handleRoleSelection"
               >
                 <v-radio label="Yes" value="Yes"></v-radio>
