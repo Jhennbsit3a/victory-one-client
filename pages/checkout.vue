@@ -21,7 +21,7 @@
           <h3>Delivery Address</h3>
           <p>{{ selectedAddress ? `${selectedAddress.street}, ${selectedAddress.city}, ${selectedAddress.province},
             ${selectedAddress.zip}` : 'No address selected' }}</p>
-          <button @click="editAddress">Address Options</button>
+          <button class="checkout-button" @click="editAddress">Address Options</button>
         </div>
 
         <div class="cart-details">
@@ -34,7 +34,7 @@
           <p v-if="selectedPaymentMethod">{{ selectedPaymentMethod.method }}</p>
           <p v-else>No Payment Method Selected</p>
           
-          <button @click="showPaymentModal = true">Payment Options</button>
+          <button class="checkout-button" @click="showPaymentModal = true">Payment Options</button>
         </div>
       </div>
 
