@@ -50,7 +50,7 @@
                 <v-card-title class="d-flex justify-space-between">
                   <span>{{ product.name }}</span>
                   <!-- Cart icon next to product name -->
-                  <v-btn icon class="cart-icon" @click.stop="addToCart(product)" :disabled="loading">
+                  <v-btn icon class="cart-icon" @click.stop="addToCart(product, quantity)" :disabled="loading">
                     <v-icon style="color: #FFA900;">mdi-cart-minus</v-icon>
                   </v-btn>
                 </v-card-title>
@@ -64,7 +64,7 @@
                 <!-- See More and Buy Now buttons -->
                 <v-card-actions class="d-flex justify-space-between">
                   <span class="see-more" @click.stop="goToProduct(product.id)">See More..</span>
-                  <v-btn class="buy-now-btn" @click.stop="buyNow(product)" :disabled="loading"
+                  <v-btn class="buy-now-btn" @click.stop="buyNow(product, quantity)" :disabled="loading"
                     style="background-color: #FFA900; color: white;">
                     <template v-if="loading">
                       <v-progress-circular indeterminate size="24" color="white" />
@@ -84,8 +84,8 @@
 </template>
 
 <script>
-import { firestore } from '~/plugins/firebase';
-import { collection, getDocs, onSnapshot, addDoc, doc, updateDoc, increment } from 'firebase/firestore'; // Import doc, updateDoc, and increment
+import { firestore,auth } from '~/plugins/firebase';
+import { collection, getDocs, onSnapshot, addDoc, where, updateDoc,query } from 'firebase/firestore'; // Import doc, updateDoc, and increment
 import { getAuth } from 'firebase/auth'; // Import Firebase auth
 
 export default {
@@ -97,6 +97,7 @@ export default {
       categories: [],
       searchTerm: '',
       selectedCategory: null,
+      quantity: 1,
     };
   },
   async created() {
@@ -160,33 +161,91 @@ export default {
     }
   },
   methods: {
-    async addToCart(productId) {
-      this.$router.push(`/product/${productId}`);
+    async addToCart(product, quantity) {
+      try {
+        const user = auth.currentUser; // Get the current logged-in user
+
+        if (!user) {
+          // Redirect to sign-in page if the user is not authenticated
+          this.$router.push('/sign/signin');
+          return;
+        }
+
+        // Proceed if the user is authenticated
+        const cartRef = collection(firestore, 'Cart'); // Reference to the Cart collection
+
+        // Create a query to check if the product already exists in the user's cart and is not confirmed
+        const productQuery = query(
+          cartRef,
+          where('userID', '==', user.uid),
+          where('ProductID', '==', product.id),
+          where('orderStatus', '==', 'Not Confirmed') // Exclude confirmed items
+        );
+
+        const querySnapshot = await getDocs(productQuery); // Get query snapshot
+
+        if (querySnapshot.empty) {
+          // If no existing product, add the product to the cart
+          await addDoc(cartRef, {
+            userID: user.uid, // Add user ID
+            ProductID: product.id, // Add Product ID
+            Quantity: quantity, // Add Quantity
+            orderStatus: "Not Confirmed" // Set initial status
+          });
+
+          console.log('Product added to cart:', product.ProductName); // Log success message
+        } else {
+          // If the product already exists in the cart, update the quantity
+          const cartDoc = querySnapshot.docs[0]; // Get the first matching document
+          const updatedQuantity = cartDoc.data().Quantity + quantity; // Update the quantity
+
+          await updateDoc(cartDoc.ref, {
+            Quantity: updatedQuantity, // Update the quantity field
+          });
+
+          console.log('Cart updated with new quantity:', updatedQuantity); // Log success message
+        }
+
+        // Update the cart count
+        this.cartCount += quantity;
+      } catch (error) {
+        console.error('Error adding or updating product in cart:', error); // Log any errors during adding or updating
+      }
     },
     goToProduct(productId) {
       this.$router.push(`/product/${productId}`);
     },
-    async buyNow(product) {
-      this.loading = true;  // Start loading animation
-      const auth = getAuth(); // Initialize Firebase auth
+    async buyNow(product, quantity) {
+    try {
       const user = auth.currentUser;
 
       if (!user) {
-        this.loading = false;  // Stop loading animation
-        console.log("User is not logged in");
-        this.$router.push('/sign/signin'); // Redirect to sign-in page
+        // Redirect to sign-in if the user is not authenticated
+        this.$router.push('/sign/signin');
         return;
       }
 
-      try {
-        await this.addToCart(product); // Add to cart (assumes a valid addToCart method)
-        this.$router.push(`/product/${product.id}`); // Navigate to product page
-      } catch (error) {
-        console.error("Error during buy now:", error);
-      } finally {
-        this.loading = false;  // Stop loading animation
-      }
-    },
+      // Create a temporary cart item to pass to the checkout page
+      const cartItem = {
+        userID: user.uid,
+        ProductID: product.id,
+        productName: product.ProductName,
+        price: product.price,
+        Quantity: quantity,
+        image: product.image || this.defaultImage,
+      };
+
+      // Redirect to checkout page with cart item as query
+      this.$router.push({
+        path: '/checkout',
+        query: {
+          items: JSON.stringify([cartItem]), // Convert the cart item to a query string
+        },
+      });
+    } catch (error) {
+      console.error('Error processing Buy Now action:', error);
+    }
+  },
     selectCategory(category) {
       if (this.selectedCategory && this.selectedCategory.CategoryID === category.CategoryID) {
         this.selectedCategory = null;
