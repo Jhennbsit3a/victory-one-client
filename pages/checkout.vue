@@ -46,8 +46,8 @@
           <p>₱{{ subtotal.toFixed(2) }}</p>
         </div>
         <div class="summary-item">
-          <p>Shipping Fee:</p>
-          <p>₱{{ tax.toFixed(2) }}</p>
+          <!-- <p>Shipping Fee:</p>
+          <p>₱{{ tax.toFixed(2) }}</p> -->
         </div>
         <hr />
         <div class="total-item">
