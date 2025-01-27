@@ -79,8 +79,8 @@
               <span>₱{{ subtotal.toFixed(2) }}</span>
             </div>
             <div class="summary-item">
-              <span>Sales Tax:</span>
-              <span>₱{{ tax.toFixed(2) }}</span>
+              <!-- <span>Sales Tax:</span>
+              <span>₱{{ tax.toFixed(2) }}</span> -->
             </div>
             <hr />
             <div class="summary-total">
@@ -133,7 +133,8 @@ export default {
       return this.subtotal * 0.1; // Assuming 10% sales tax
     },
     grandTotal() {
-      return this.subtotal + this.tax;
+      // return this.subtotal + this.tax;
+      return this.subtotal;
     },
   },
   async created() {

@@ -187,8 +187,9 @@ export default {
     },
     calculateTotals() {
       this.subtotal = this.cartItems.reduce((total, item) => total + (item.price * item.Quantity), 0);
-      this.tax = this.subtotal * 0.1;
-      this.total = this.subtotal + this.tax;
+      // this.tax = this.subtotal * 0.1;
+      // this.total = this.subtotal + this.tax;
+      this.total = this.subtotal;
     },
     calculateEstimatedDeliveryDate() {
       const estimatedDate = new Date();
@@ -334,6 +335,9 @@ export default {
           // if(this.selectedPaymentMethod.method === 'Pick up'){
           //   this.tax = 0;
           // }
+          if(this.selectedPaymentMethod.method !== 'Pick up'){
+            this.tax = this.subtotal * 0.1
+          }
           const userId = user.uid;
           const orderData = {
             userId: userId,
