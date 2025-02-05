@@ -6,15 +6,22 @@
         <h2>Checkout</h2>
 
         <!-- Cart Items -->
-      <div v-for="item in cartItems" :key="item.id" class="cart-item">
-        <img :src="item.image || defaultImage" alt="Product Image" class="cart-item-image" />
-        <div class="cart-item-details">
-          <p><strong>{{ item.productName }}</strong></p>
-          <p class="price">Price: ₱{{ (item.price || 0).toFixed(2) }}</p>
-          <p>Quantity: {{ item.Quantity || 1 }}</p>
-          <p class="total">Total: ₱{{ ((item.price || 0) * (item.Quantity || 1)).toFixed(2) }}</p>
+        <div v-for="item in cartItems" :key="item.id" class="cart-item">
+          <img :src="item.image || defaultImage" alt="Product Image" class="cart-item-image" />
+          <div class="cart-item-details">
+            <p><strong>{{ item.productName }}</strong></p>
+            <p class="price">Price: ₱{{ (item.price || 0).toFixed(2) }}</p>
+
+            <!-- Editable Quantity -->
+            <div class="quantity-edit">
+              <v-btn @click="updateQuantity(item, item.Quantity - 1)" :disabled="item.Quantity <= 1" color="secondary" style="width: 10px;">-</v-btn>
+              <input type="number" v-model.number="item.Quantity" @change="updateQuantity(item, item.Quantity)" style="width: 35px;" />
+              <v-btn @click="updateQuantity(item, item.Quantity + 1)" color="secondary" style="width: 10px;">+</v-btn>
+            </div>
+            
+            <!-- <p class="total">Total: ₱{{ ((item.price || 0) * (item.Quantity || 1)).toFixed(2) }}</p> -->
+          </div>
         </div>
-      </div>
 
         <!-- Delivery Address Section -->
         <div class="delivery-section">
@@ -190,6 +197,11 @@ export default {
       // this.tax = this.subtotal * 0.1;
       // this.total = this.subtotal + this.tax;
       this.total = this.subtotal;
+    },
+    updateQuantity(item, newQuantity) {
+      if (newQuantity < 1) return;
+      item.Quantity = newQuantity;
+      this.calculateTotals();
     },
     calculateEstimatedDeliveryDate() {
       const estimatedDate = new Date();
