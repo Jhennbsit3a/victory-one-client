@@ -53,8 +53,8 @@
           <p>₱{{ subtotal.toFixed(2) }}</p>
         </div>
         <div class="summary-item">
-          <!-- <p>Shipping Fee:</p>
-          <p>₱{{ tax.toFixed(2) }}</p> -->
+          <p>Shipping Fee:</p>
+          <p>₱{{ tax.toFixed(2) }}</p>
         </div>
         <hr />
         <div class="total-item">
@@ -194,8 +194,10 @@ export default {
     },
     calculateTotals() {
       this.subtotal = this.cartItems.reduce((total, item) => total + (item.price * item.Quantity), 0);
-      // this.tax = this.subtotal * 0.1;
-      // this.total = this.subtotal + this.tax;
+      // if(this.selectedPaymentMethod === 'Pick up'){
+      //     this.tax = this.subtotal * 0.1;
+      //     this.total = this.subtotal + this.tax;
+      // }
       this.total = this.subtotal;
     },
     updateQuantity(item, newQuantity) {
@@ -288,6 +290,12 @@ export default {
 
     closePaymentModal() {
       this.showPaymentModal = false;
+      if(this.selectedPaymentMethod.method !== 'Pick up'){
+          this.tax = this.subtotal * 0.1;
+          this.total = this.subtotal + this.tax;
+      }else{
+        this.tax = 0;
+      }
     },
     editAddress() {
       this.showAddressModal = true;
@@ -344,12 +352,7 @@ export default {
         const auth = getAuth();
         const user = auth.currentUser;
         if (user) {
-          // if(this.selectedPaymentMethod.method === 'Pick up'){
-          //   this.tax = 0;
-          // }
-          if(this.selectedPaymentMethod.method !== 'Pick up'){
-            this.tax = this.subtotal * 0.1
-          }
+ 
           const userId = user.uid;
           const orderData = {
             userId: userId,
