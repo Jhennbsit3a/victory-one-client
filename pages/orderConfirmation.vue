@@ -140,66 +140,126 @@ export default {
         console.error('Error fetching product images:', error);
       }
     },
-    async confirmOrder() {
-      try {
-        this.loading = true; // Show loading animation
-        const auth = getAuth();
-        const user = auth.currentUser;
-        if (this.orderData) {
+    // async confirmOrder() {
+    //   try {
+    //     this.loading = true; // Show loading animation
+    //     const auth = getAuth();
+    //     const user = auth.currentUser;
+    //     if (this.orderData) {
 
-          if (user) {
-            const orderRef = collection(firestore, 'Orders');
-            const orderDocRef = await addDoc(orderRef, {
-              userId: this.orderData.userId,
-              cartItems: this.orderData.cartItems,
-              deliveryAddress: this.orderData.deliveryAddress,
-              paymentMethod: this.orderData.paymentMethod,
-              subtotal: this.orderData.subtotal,
-              tax: this.orderData.tax,
-              total: this.orderData.total,
-              estimatedDeliveryDate: this.orderData.estimatedDeliveryDate,
-              status: 'Pending',
-              createdAt: new Date(),
-            });
+    //       if (user) {
+    //         const orderRef = collection(firestore, 'Orders');
+    //         const orderDocRef = await addDoc(orderRef, {
+    //           userId: this.orderData.userId,
+    //           cartItems: this.orderData.cartItems,
+    //           deliveryAddress: this.orderData.deliveryAddress,
+    //           paymentMethod: this.orderData.paymentMethod,
+    //           subtotal: this.orderData.subtotal,
+    //           tax: this.orderData.tax,
+    //           total: this.orderData.total,
+    //           estimatedDeliveryDate: this.orderData.estimatedDeliveryDate,
+    //           status: 'Pending',
+    //           createdAt: new Date(),
+    //         });
 
-            this.orderId = orderDocRef.id;
-            this.orderData.orderId = this.orderId;
+    //         this.orderId = orderDocRef.id;
+    //         this.orderData.orderId = this.orderId;
             
-            // Delay for loading effect before opening dialog
-            setTimeout(() => {
-              // Check if payment method is GCash
-              if (this.orderData.paymentMethod === 'Gcash') {
-                this.openGcashDialog(); // Open GCash dialog
-              } else if(this.orderData.paymentMethod === 'Pick up'){
-                //this.openGcashDialog(); // Open GCash dialog
-                this.openQrCodeDialog(); // Proceed to QR code directly
-              }else{
-                this.goBack();
-              }
-              this.loading = false; // Hide loading animation
-            }, 2000); // Set a delay (2 seconds) for the loading animation
-          } else {
-            console.error('User not authenticated.');
-            this.loading = false;
-          }
+    //         // Delay for loading effect before opening dialog
+    //         setTimeout(() => {
+    //           // Check if payment method is GCash
+    //           if (this.orderData.paymentMethod === 'Gcash') {
+    //             this.openGcashDialog(); // Open GCash dialog
+    //           } else if(this.orderData.paymentMethod === 'Pick up'){
+    //             //this.openGcashDialog(); // Open GCash dialog
+    //             this.openQrCodeDialog(); // Proceed to QR code directly
+    //           }else{
+    //             this.goBack();
+    //           }
+    //           this.loading = false; // Hide loading animation
+    //         }, 2000); // Set a delay (2 seconds) for the loading animation
+    //       } else {
+    //         console.error('User not authenticated.');
+    //         this.loading = false;
+    //       }
+    //     }
+    //     const cartRef = collection(firestore, "Cart"); // Reference to the Cart collection
+    //     const q = query(cartRef, where("userID", "==", user.uid)); // Query to find matching userID
+    //     const querySnapshot = await getDocs(q); // Fetch matching documents
+
+    //     // Update the orderStatus of all matched documents
+    //     const updatePromises = querySnapshot.docs.map((docSnapshot) => {
+    //       const docRef = doc(firestore, "Cart", docSnapshot.id); // Reference to the specific document
+    //       return updateDoc(docRef, { orderStatus: "Confirmed" });
+    //     });
+
+    //     await Promise.all(updatePromises); // Wait for all updates to complete
+    //     console.log("Order status updated successfully for all matching items.");
+    //   } catch (error) {
+    //     console.error('Error confirming order:', error);
+    //     this.loading = false;
+    //   }
+    // },
+async confirmOrder() {
+  try {
+    this.loading = true; 
+    const auth = getAuth();
+    const user = auth.currentUser;
+
+    if (!user) {
+      console.error('User not authenticated.');
+      this.loading = false;
+      return;
+    }
+
+    if (this.orderData) {
+      const orderRef = collection(firestore, 'Orders');
+      const orderDocRef = await addDoc(orderRef, {
+        userId: this.orderData.userId,
+        cartItems: this.orderData.cartItems, // Only selected items
+        deliveryAddress: this.orderData.deliveryAddress,
+        paymentMethod: this.orderData.paymentMethod,
+        subtotal: this.orderData.subtotal,
+        tax: this.orderData.tax,
+        total: this.orderData.total,
+        estimatedDeliveryDate: this.orderData.estimatedDeliveryDate,
+        status: 'Pending',
+        createdAt: new Date(),
+      });
+
+      this.orderId = orderDocRef.id;
+      this.orderData.orderId = this.orderId;
+
+      setTimeout(() => {
+        if (this.orderData.paymentMethod === 'Gcash') {
+          this.openGcashDialog();
+        } else if (this.orderData.paymentMethod === 'Pick up') {
+          this.openQrCodeDialog();
+        } else {
+          this.goBack();
         }
-        const cartRef = collection(firestore, "Cart"); // Reference to the Cart collection
-        const q = query(cartRef, where("userID", "==", user.uid)); // Query to find matching userID
-        const querySnapshot = await getDocs(q); // Fetch matching documents
-
-        // Update the orderStatus of all matched documents
-        const updatePromises = querySnapshot.docs.map((docSnapshot) => {
-          const docRef = doc(firestore, "Cart", docSnapshot.id); // Reference to the specific document
-          return updateDoc(docRef, { orderStatus: "Confirmed" });
-        });
-
-        await Promise.all(updatePromises); // Wait for all updates to complete
-        console.log("Order status updated successfully for all matching items.");
-      } catch (error) {
-        console.error('Error confirming order:', error);
         this.loading = false;
-      }
-    },
+      }, 2000);
+
+      // ✅ FIX: Only update selected items
+      const cartRef = collection(firestore, "Cart");
+      const selectedProductIDs = this.orderData.cartItems.map(item => item.productID);
+      const q = query(cartRef, where("userID", "==", user.uid), where("ProductID", "in", selectedProductIDs));
+      const querySnapshot = await getDocs(q);
+
+      const updatePromises = querySnapshot.docs.map((docSnapshot) => {
+        const docRef = doc(firestore, "Cart", docSnapshot.id);
+        return updateDoc(docRef, { orderStatus: "Confirmed" });
+      });
+
+      await Promise.all(updatePromises);
+      console.log("Order status updated successfully for selected items.");
+    }
+  } catch (error) {
+    console.error('Error confirming order:', error);
+    this.loading = false;
+  }
+},
     openGcashDialog() {
       this.gcashDialog = true; // Show GCash dialog
     },
