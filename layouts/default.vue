@@ -1,5 +1,6 @@
 <template>
   <v-app dark>
+    
     <v-app-bar v-if="showNavbar" app fixed elevate height="80px">
       <!-- Menu Icon for Small Screens -->
       <v-btn icon @click="drawer = !drawer" aria-label="Navigation Menu" v-if="$vuetify.breakpoint.xsOnly">

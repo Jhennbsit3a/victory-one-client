@@ -1,6 +1,24 @@
 <template>
   <v-container fluid>
     <v-row align="center" justify="center">
+      <v-snackbar
+        v-model="snackbar"
+        top
+        elevation="24"
+      >
+        {{ inform }}
+
+        <template v-slot:action="{ attrs }">
+          <v-btn
+            color="pink"
+            text
+            v-bind="attrs"
+            @click="closeInform"
+          >
+            Close
+          </v-btn>
+        </template>
+      </v-snackbar>
       <v-col cols="12" sm="8" md="6">
         <v-card class="auth-card">
           <v-card-title class="justify-center auth-title">Create an Account</v-card-title>
@@ -114,6 +132,7 @@ export default {
       selectedRole: 'customer', // Default role
       showPassword: false,
       showConfirmPassword: false,
+      snackbar: false,
       loading: false, // Added loading state
       dialog: false,
       roleOptions: ['Business Owner'], // Only 'Business Owner' role in the list
@@ -139,6 +158,9 @@ export default {
       } else if (this.userResponse === "No") {
         this.selectedRole = "customer";
       }
+    },
+    closeInform(){
+      this.snackbar = false
     },
     async signUp() {
       if (this.$refs.form.validate() && this.password === this.confirmPassword) {
@@ -244,7 +266,9 @@ export default {
           errorMessage = error.message || errorMessage;
       }
 
-      alert(errorMessage);
+      // alert(errorMessage);
+        this.snackbar = true
+        this.inform = errorMessage
     },
     redirectToSignIn() {
       this.$router.push('/sign/signin');

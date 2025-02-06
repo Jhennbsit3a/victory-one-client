@@ -1,6 +1,24 @@
 <template>
   <v-container>
     <v-row>
+      <v-snackbar
+        v-model="snackbar"
+        top
+        elevation="24"
+      >
+        {{ inform }}
+
+        <template v-slot:action="{ attrs }">
+          <v-btn
+            color="pink"
+            text
+            v-bind="attrs"
+            @click="closeInform"
+          >
+            Close
+          </v-btn>
+        </template>
+      </v-snackbar>
       <!-- Sidebar -->
       <v-col cols="12" md="3">
         <v-card class="pa-5 profile-sidebar elevation-2">
@@ -336,6 +354,8 @@ export default {
         address: '',
         savedAddresses: [],
       },
+      inform: '',
+      snackbar: false,
       address: '',
       hasOrders: false, // New property to track if user has orders
       showEditInfoDialog: false,  // New property to control Edit Info modal visibility
@@ -447,11 +467,15 @@ export default {
       if (currentUser && !currentUser.emailVerified) {
         try {
           await sendEmailVerification(currentUser);
-          alert('Verification email sent. Please check your inbox.');
+          this.snackbar = true
+          this.inform = "Verification email sent. Please check your inbox."
+          // alert('Verification email sent. Please check your inbox.');
           this.emailVerified = false;  // Ensure it's not marked as verified yet
         } catch (error) {
           console.error('Error sending verification email:', error);
-          alert('Failed to send verification email.');
+          this.snackbar = true
+          this.inform = "Failed to send verification email."
+          // alert('Failed to send verification email.');
         }
       }
     },
@@ -502,15 +526,17 @@ export default {
       }
     },
 
-    // Your existing methods...a
-    async saveEditInfo() {
-      // Your existing save logic...
-    },
+    // // Your existing methods...a
+    // async saveEditInfo() {
+    //   // Your existing save logic...
+    // },
     async saveEditInfo() {
       try {
         const user = auth.currentUser;
         if (!user) {
-          alert("You need to be logged in to edit your information.");
+          // alert("You need to be logged in to edit your information.");
+        this.snackbar = true
+        this.inform = "You need to be logged in to edit your information."
           return;
         }
 
@@ -531,11 +557,15 @@ export default {
 
         // Close the dialog
         this.showEditInfoDialog = false;
+        this.snackbar = true
+        this.inform = "Your information has been updated successfully!"
 
-        alert("Your information has been updated successfully!");
+        // alert("Your information has been updated successfully!");
       } catch (error) {
         console.error("Error updating user info:", error);
-        alert("Failed to update your information.");
+        this.snackbar = true
+        this.inform = "Failed to update your information."
+        // alert("Failed to update your information.");
       }
     },
     async uploadAvatar(event) {
@@ -546,7 +576,9 @@ export default {
       const user = auth.currentUser;
 
       if (!user) {
-        alert("You need to log in to upload an avatar.");
+        this.snackbar = true
+        this.inform = "You need to log in to upload an avatar."
+        // alert("You need to log in to upload an avatar.");
         return;
       }
 
@@ -563,18 +595,27 @@ export default {
 
         // Update the UI
         this.user.profilePicture = downloadURL;
+        this.snackbar = true
+        this.inform = "Avatar uploaded successfully!"
 
-        alert("Avatar uploaded successfully!");
+        // alert("Avatar uploaded successfully!");
       } catch (error) {
         console.error("Error uploading avatar:", error);
-        alert("Failed to upload avatar.");
+        this.snackbar = true
+        this.inform = "Failed to upload avatar."
+        // alert("Failed to upload avatar.");
       }
+    },
+    closeInform(){
+      this.snackbar = false
     },
     async removeAvatar() {
       try {
         const user = auth.currentUser;
         if (!user) {
-          alert("You need to log in to remove your avatar.");
+          // alert("You need to log in to remove your avatar.");
+          this.snackbar = true
+          this.inform = "You need to log in to remove your avatar."
           return;
         }
 
@@ -586,11 +627,14 @@ export default {
 
         // Update the UI
         this.user.profilePicture = '';
-
-        alert("Avatar removed successfully!");
+        this.snackbar = true
+        this.inform = "Avatar removed successfully!"
+        // alert("Avatar removed successfully!");
       } catch (error) {
         console.error("Error removing avatar:", error);
-        alert("Failed to remove avatar.");
+        // alert("Failed to remove avatar.");
+        this.snackbar = true
+        this.inform = "Failed to remove avatar."
       }
     },
     async loadSavedAddresses(userId) {
@@ -631,7 +675,9 @@ export default {
         this.$router.push('/');
       }).catch((error) => {
         console.error('Error logging out:', error);
-        alert('Failed to log out. Please try again.');
+          this.snackbar = true
+          this.inform = "Failed to log out. Please try again."
+        // alert('Failed to log out. Please try again.');
       });
     },
     async editAddress(index) {
@@ -698,11 +744,16 @@ export default {
             };
             this.showAddressDialog = false;
           } else {
-            alert('User is not authenticated');
+            // alert('User is not authenticated');
+          this.snackbar = true
+          this.inform = "User is not authenticated"
           }
         } catch (error) {
           console.error('Error adding address:', error);
-          alert('Failed to add address.');
+          // alert('Failed to add address.');
+          this.snackbar = true
+          this.inform = "Failed to add address."
+          
         }
       } else {
         alert("Please fill out all fields.");

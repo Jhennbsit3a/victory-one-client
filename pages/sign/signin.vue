@@ -1,6 +1,24 @@
 <template>
   <v-container class="fill-height d-flex align-center justify-center" fluid>
     <v-row align="center" justify="center">
+      <v-snackbar
+        v-model="snackbar"
+        top
+        elevation="24"
+      >
+        {{ inform }}
+
+        <template v-slot:action="{ attrs }">
+          <v-btn
+            color="pink"
+            text
+            v-bind="attrs"
+            @click="closeInform"
+          >
+            Close
+          </v-btn>
+        </template>
+      </v-snackbar>
       <v-col cols="12" sm="8" md="5">
         <v-card class="sign-in-card">
           <v-card-text class="text-center mt-4">
@@ -118,9 +136,13 @@ export default {
       showForgotPasswordDialog: false,  // <-- Add this line
       emailRules: [v => !!v || 'Email is required', v => /.+@.+\..+/.test(v) || 'E-mail must be valid'],
       passwordRules: [v => !!v || 'Password is required', v => v.length >= 6 || 'Password must be at least 6 characters'],
+      snackbar: false
     };
   },
   methods: {
+    closeInform(){
+      this.snackbar = false
+    },
     async signIn() {
       if (this.$refs.form.validate()) {
         this.loading = true; // Start loading indicator
@@ -140,7 +162,9 @@ export default {
           }
         } catch (error) {
           console.error("Error signing in:", error);
-          alert("Sign-in failed: " + error.message);
+          this.snackbar = true
+          this.inform = "Sign-in failed: " + error.message
+          // alert("Sign-in failed: " + error.message);
         } finally {
           this.loading = false; // Stop loading indicator
         }
@@ -174,7 +198,9 @@ export default {
         }
       } catch (error) {
         console.error("Google Sign-In Error:", error);
-        alert("Google sign-in failed: " + error.message);
+        // alert("Google sign-in failed: " + error.message);
+          this.snackbar = true
+          this.inform = "Google sign-in failed: " + error.message
       }
     },
     async sendResetEmail() {
@@ -187,19 +213,27 @@ export default {
 
           if (querySnapshot.empty) {
             // No user found with the given email
-            alert("No account found with that email address.");
+            this.snackbar = true
+            this.inform = "No account found with that email address."
+            // alert("No account found with that email address.");
           } else {
             // User found, send password reset email
             await sendPasswordResetEmail(auth, this.resetEmail);
             this.forgotPasswordDialog = false;
-            alert("Password reset email sent!");
+            this.snackbar = true
+            this.inform = "Password reset email sent!"
+            // alert("Password reset email sent!");
           }
         } catch (error) {
           console.error("Error sending password reset email:", error);
-          alert("Error sending password reset email: " + error.message);
+          this.snackbar = true
+          this.inform = "Error sending password reset email: " + error.message
+          // alert("Error sending password reset email: " + error.message);
         }
       } else {
-        alert("Please enter your email to reset your password.");
+        this.snackbar = true
+        this.inform = "Please enter your email to reset your password."
+        // alert("Please enter your email to reset your password.");
       }
     },
     goToSignUp() {

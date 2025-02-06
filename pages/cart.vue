@@ -1,5 +1,23 @@
 <template>
   <v-container>
+      <v-snackbar
+        v-model="snackbar"
+        top
+        elevation="24"
+      >
+        {{ inform }}
+
+        <template v-slot:action="{ attrs }">
+          <v-btn
+            color="pink"
+            text
+            v-bind="attrs"
+            @click="closeInform"
+          >
+            Close
+          </v-btn>
+        </template>
+      </v-snackbar>
     <!-- Cart Header -->
     <v-row>
       <v-col cols="12" class="text-center">
@@ -117,6 +135,7 @@ export default {
     return {
       isLoading: false,  // Loading state
       cartItems: [], // Array to hold cart items
+      snackbar: false,
     };
   },
   computed: {
@@ -150,6 +169,10 @@ export default {
     });
   },
   methods: {
+
+    closeInform(){
+      this.snackbar = false
+    },
     toggleSelectAll() {
       const newValue = !this.isAllSelected; // Toggle selection state
       this.cartItems.forEach((item) => {
@@ -243,7 +266,10 @@ export default {
 
       if (selectedItems.length === 0) {
         // Alert if no items are selected
-        alert("Please select at least one item to proceed to checkout.");
+        this.snackbar = true
+        this.inform = "Please select at least one item to proceed to checkout."
+
+        // alert("Please select at least one item to proceed to checkout.");
         return; // Prevent checkout if no items are selected
       }
 
