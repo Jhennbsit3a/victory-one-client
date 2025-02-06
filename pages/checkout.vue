@@ -165,7 +165,8 @@ export default {
   data() {
     return {
       loading: false,  // Track the loading state
-      snakbar: true,
+      snackbar: true,
+      inform:'',
       cartItems: [],
       deliveryAddress: ' ',
       subtotal: 0,
