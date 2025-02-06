@@ -111,6 +111,7 @@ export default {
       orderId: null,       // Store the orderId after order creation
       loading: false,      // Loading state
       paymentMethod:'',
+      inform:'',
     };
   },
   created() {

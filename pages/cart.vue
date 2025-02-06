@@ -136,6 +136,7 @@ export default {
       isLoading: false,  // Loading state
       cartItems: [], // Array to hold cart items
       snackbar: false,
+      inform:'',
     };
   },
   computed: {

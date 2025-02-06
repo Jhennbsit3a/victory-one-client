@@ -130,6 +130,7 @@ export default {
       valid: false,
       email: '',
       password: '',
+      inform:'',
       showPassword: false,
       forgotPasswordDialog: false,  // This should be declared here
       resetEmail: '',

@@ -1,6 +1,24 @@
 <template>
   <div>
     <div class="checkout-container">
+      <v-snackbar
+        v-model="snackbar"
+        top
+        elevation="24"
+      >
+        {{ inform }}
+
+        <template v-slot:action="{ attrs }">
+          <v-btn
+            color="pink"
+            text
+            v-bind="attrs"
+            @click="closeInform"
+          >
+            Close
+          </v-btn>
+        </template>
+      </v-snackbar>
       <!-- Left Column (Cart Items) -->
       <div class="checkout-left">
         <h2>Checkout</h2>
@@ -147,6 +165,7 @@ export default {
   data() {
     return {
       loading: false,  // Track the loading state
+      snakbar: true,
       cartItems: [],
       deliveryAddress: ' ',
       subtotal: 0,
@@ -183,6 +202,9 @@ export default {
     });
   },
   methods: {
+    closeInform(){
+      this.snackbar = false
+    },
     async loadCartItems() {
       const items = JSON.parse(this.$route.query.items || '[]');
       this.cartItems = items.map(item => ({
@@ -284,7 +306,9 @@ export default {
       if (this.selectedPaymentMethod) {
         this.closePaymentModal(); // Close the modal after selection
       } else {
-        alert('Please select a payment method first.');
+        his.snackbar = true
+        this.inform = "Please select a payment method first."
+        // alert('Please select a payment method first.');
       }
     },
 
@@ -337,12 +361,16 @@ export default {
       }
 
       if (!this.selectedAddress) {
-        alert('Please select a delivery address before placing your order.');
+        this.snackbar = true
+        this.inform = "Please select a delivery address before placing your order."
+        // alert('Please select a delivery address before placing your order.');
         return; // Stop execution if no address is selected
       }
 
       if (!this.selectedPaymentMethod) {
-        alert('Please select a payment method before placing your order.');
+        // alert('Please select a payment method before placing your order.');
+        this.snackbar = true
+        this.inform = "Please select a payment method before placing your order."
         return; // Stop execution if no payment method is selected
       }
 

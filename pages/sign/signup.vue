@@ -129,6 +129,7 @@ export default {
       email: '',
       password: '',
       confirmPassword: '',
+      inform:'',
       selectedRole: 'customer', // Default role
       showPassword: false,
       showConfirmPassword: false,
