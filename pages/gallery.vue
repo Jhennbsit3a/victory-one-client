@@ -100,66 +100,114 @@ export default {
       quantity: 1,
     };
   },
+  // async created() {
+  //   try {
+  //     // Fetch categories from Firestore
+  //     const categoriesSnapshot = await getDocs(collection(firestore, 'Categories'));
+  //     this.categories = categoriesSnapshot.docs.map(doc => ({
+  //       id: doc.id,
+  //       ProductType: doc.data().ProductType,
+  //       CategoryID: doc.data().CategoryID,
+  //     }));
+
+  //     // Fetch products from Firestore
+  //     const productsRef = collection(firestore, 'Products');
+  // onSnapshot(productsRef, (snapshot) => {
+  //   this.products = snapshot.docs.map(doc => ({
+  //     id: doc.id,
+  //     name: doc.data().ProductName,
+  //     price: doc.data().Price,
+  //     image: doc.data().Image,
+  //     categoryID: doc.data().CategoryID,
+  //     soldQuantity: doc.data().Sold || 0,
+  //   }));
+  //   this.filterProducts();
+  // });
+
+  //     // Fetch orders from Firestore
+  //     const ordersSnapshot = await getDocs(collection(firestore, 'Orders'));
+  //     const orders = ordersSnapshot.docs.map(doc => doc.data());
+
+  //     // Calculate total sold quantity for each product
+  //     this.products = this.products.map(product => {
+  //       const productId = product.id;
+
+  //       // Calculate total quantity sold for this product
+  //       const totalSold = orders.reduce((sum, order) => {
+  //         const productInCart = order.cartItems.find(item => item.productID === productId);
+  //         if (productInCart) {
+  //           return sum + productInCart.Quantity;
+  //         }
+  //         return sum;
+  //       }, 0);
+
+  //       // Update soldQuantity field
+  //       product.soldQuantity = totalSold;
+
+  //       return product;
+  //     });
+
+  //     // Initialize filteredProducts
+  //     this.filteredProducts = this.products;
+
+  //     // Check for category in query parameters
+  //     const selectedCategory = this.$route.query.category;
+  //     if (selectedCategory) {
+  //       this.selectedCategory = this.categories.find(cat => cat.ProductType === selectedCategory);
+  //     }
+  //     this.filterProducts(); // Call filterProducts after fetching data
+  //   } catch (error) {
+  //     console.error("Error fetching data: ", error);
+  //   }
+  // },
   async created() {
-    try {
-      // Fetch categories from Firestore
-      const categoriesSnapshot = await getDocs(collection(firestore, 'Categories'));
-      this.categories = categoriesSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ProductType: doc.data().ProductType,
-        CategoryID: doc.data().CategoryID,
-      }));
-
-      // Fetch products from Firestore
-      const productsRef = collection(firestore, 'Products');
-  onSnapshot(productsRef, (snapshot) => {
-    this.products = snapshot.docs.map(doc => ({
+  try {
+    // Fetch categories from Firestore
+    const categoriesSnapshot = await getDocs(collection(firestore, 'Categories'));
+    this.categories = categoriesSnapshot.docs.map(doc => ({
       id: doc.id,
-      name: doc.data().ProductName,
-      price: doc.data().Price,
-      image: doc.data().Image,
-      categoryID: doc.data().CategoryID,
-      soldQuantity: doc.data().Sold || 0,
+      ProductType: doc.data().ProductType,
+      CategoryID: doc.data().CategoryID,
     }));
-    this.filterProducts();
-  });
 
-      // Fetch orders from Firestore
-      const ordersSnapshot = await getDocs(collection(firestore, 'Orders'));
-      const orders = ordersSnapshot.docs.map(doc => doc.data());
+    // Fetch products from Firestore
+    const productsRef = collection(firestore, 'Products');
+    onSnapshot(productsRef, (snapshot) => {
+      this.products = snapshot.docs.map(doc => ({
+        id: doc.id,
+        name: doc.data().ProductName,
+        price: doc.data().Price,
+        image: doc.data().Image,
+        categoryID: doc.data().CategoryID,
+        soldQuantity: doc.data().Sold || 0,
+      }));
+      this.filterProducts();
+    });
 
-      // Calculate total sold quantity for each product
-      this.products = this.products.map(product => {
-        const productId = product.id;
-
-        // Calculate total quantity sold for this product
-        const totalSold = orders.reduce((sum, order) => {
-          const productInCart = order.cartItems.find(item => item.productID === productId);
-          if (productInCart) {
-            return sum + productInCart.Quantity;
-          }
-          return sum;
-        }, 0);
-
-        // Update soldQuantity field
-        product.soldQuantity = totalSold;
-
-        return product;
-      });
-
-      // Initialize filteredProducts
-      this.filteredProducts = this.products;
-
-      // Check for category in query parameters
-      const selectedCategory = this.$route.query.category;
-      if (selectedCategory) {
-        this.selectedCategory = this.categories.find(cat => cat.ProductType === selectedCategory);
-      }
-      this.filterProducts(); // Call filterProducts after fetching data
-    } catch (error) {
-      console.error("Error fetching data: ", error);
+    // Get selected category from query parameters
+    const selectedCategory = this.$route.query.category;
+    if (selectedCategory) {
+      this.selectedCategory = this.categories.find(cat => cat.ProductType === selectedCategory);
     }
-  },
+    this.filterProducts();
+  } catch (error) {
+    console.error("Error fetching data: ", error);
+  }
+},
+
+  watch: {
+  '$route.query.category': {
+    immediate: true,
+    handler(newCategory) {
+      if (newCategory) {
+        this.selectedCategory = this.categories.find(cat => cat.ProductType === newCategory);
+      } else {
+        this.selectedCategory = null;
+      }
+      this.filterProducts();
+    }
+  }
+},
   methods: {
     async addToCart(product, quantity) {
       try {
@@ -246,14 +294,17 @@ export default {
       console.error('Error processing Buy Now action:', error);
     }
   },
+    // selectCategory(category) {
+    //   if (this.selectedCategory && this.selectedCategory.CategoryID === category.CategoryID) {
+    //     this.selectedCategory = null;
+    //   } else {
+    //     this.selectedCategory = category;
+    //   }
+    //   this.filterProducts();
+    // },
     selectCategory(category) {
-      if (this.selectedCategory && this.selectedCategory.CategoryID === category.CategoryID) {
-        this.selectedCategory = null;
-      } else {
-        this.selectedCategory = category;
-      }
-      this.filterProducts();
-    },
+  this.$router.push({ path: '/gallery', query: { category: category.ProductType } });
+},
     filterProducts() {
       const search = this.searchTerm ? this.searchTerm.toLowerCase() : '';
       this.filteredProducts = this.products.filter(product => {
