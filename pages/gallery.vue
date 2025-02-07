@@ -194,7 +194,6 @@ export default {
     console.error("Error fetching data: ", error);
   }
 },
-
   watch: {
   '$route.query.category': {
     immediate: true,

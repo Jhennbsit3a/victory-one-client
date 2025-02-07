@@ -197,7 +197,7 @@
 
             <v-divider class="my-4"></v-divider>
 
-            <v-list-item>
+            <!-- <v-list-item>
               <v-list-item-content>
                 <v-list-item-title>
                   <v-icon left color="#ffa900" style="font-size: 36px;">mdi-home-outline</v-icon>
@@ -212,6 +212,25 @@
               <v-list-item-action>
                 <v-btn @click="showAddressDialog = true" style="background-color: #ffa900; color: white;">
                   Add Address
+                </v-btn>
+              </v-list-item-action>
+            </v-list-item> -->
+
+            <v-list-item>
+              <v-list-item-content>
+                <v-list-item-title>
+                  <v-icon left color="#ffa900" style="font-size: 36px;">mdi-home-outline</v-icon>
+                  <span class="header-title">Your Address</span>
+                </v-list-item-title>
+                <v-list-item-subtitle>
+                  <span class="info-title">
+                    {{ address || "No address found" }}
+                  </span>
+                </v-list-item-subtitle>
+              </v-list-item-content>
+              <v-list-item-action>
+                <v-btn @click="openUpdateAddressDialog" style="background-color: #ffa900; color: white;">
+                  Update Address
                 </v-btn>
               </v-list-item-action>
             </v-list-item>
@@ -254,7 +273,7 @@
             <v-dialog v-model="showAddressDialog" max-width="500">
               <v-card>
                 <v-card-title>
-                  <span class="headline">Manage Address</span>
+                  <span class="headline">Update Address</span>
                 </v-card-title>
 
                 <v-card-text>
@@ -283,51 +302,17 @@
 
                 <v-card-actions>
                   <v-spacer></v-spacer>
-                  <v-btn color="primary" @click="addAddress">Add</v-btn>
+                  <!-- <v-btn color="primary" @click="updateAddress">Update</v-btn> -->
+                   <v-btn color="primary" @click="updateAddress" :disabled="loadingUpdateAddress">
+                    <v-progress-circular v-if="loadingUpdateAddress" indeterminate size="20" color="white"></v-progress-circular>
+                    <span v-else>Update</span>
+                  </v-btn>
                   <v-btn style="background-color: firebrick; color: white;" @click="resetAddressForm">Reset</v-btn>
                   <v-btn @click="showAddressDialog = false">Cancel</v-btn>
                 </v-card-actions>
               </v-card>
             </v-dialog>
 
-            <v-dialog v-model="showSavedAddressesDialog" max-width="800px">
-              <v-card>
-                <v-card-title>
-                  <span class="headline">Saved Addresses</span>
-                </v-card-title>
-
-                <v-card-text>
-                  <!-- List of Saved Addresses -->
-                  <v-list dense>
-                    <v-list-item v-for="(address, index) in user.savedAddresses" :key="address.id">
-                      <v-list-item-content>
-                        <v-list-item-title>
-                          <v-icon left color="#ffa900" style="font-size: 30px;">mdi-map-marker-outline</v-icon>
-                          <span style="font-size: 14px;">{{ address.address }}</span>
-                        </v-list-item-title>
-                      </v-list-item-content>
-
-                      <v-list-item-action>
-                        <!-- Edit Address Button -->
-                        <v-btn color="blue" icon @click="editAddress(index)">
-                          <v-icon>mdi-pencil</v-icon>
-                        </v-btn>
-
-                        <!-- Delete Address Button -->
-                        <v-btn color="red" icon @click="deleteAddress(index)">
-                          <v-icon>mdi-delete</v-icon>
-                        </v-btn>
-                      </v-list-item-action>
-                    </v-list-item>
-                  </v-list>
-                </v-card-text>
-
-                <v-card-actions>
-                  <v-spacer></v-spacer>
-                  <v-btn @click="showSavedAddressesDialog = false">Close</v-btn>
-                </v-card-actions>
-              </v-card>
-            </v-dialog>
 
           </v-list>
         </v-card>
@@ -356,6 +341,7 @@ export default {
       },
       inform: '',
       snackbar: false,
+      loadingUpdateAddress: false,
       address: '',
       hasOrders: false, // New property to track if user has orders
       showEditInfoDialog: false,  // New property to control Edit Info modal visibility
@@ -381,6 +367,7 @@ export default {
     };
   },
   async mounted() {
+    
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         // The user is authenticated
@@ -439,8 +426,88 @@ export default {
         console.log('User not authenticated');
       }
     });
+    
   },
   methods: {
+  openUpdateAddressDialog() {
+    if (this.user.savedAddresses.length > 0) {
+      const existingAddress = this.user.savedAddresses[0]; // Assuming the user has only one saved address
+      this.addressForm = {
+        id: existingAddress.id,
+        province: existingAddress.province,
+        city: existingAddress.city,
+        street: existingAddress.street,
+        zip: existingAddress.zip,
+      };
+    } else {
+      // If no address exists, initialize an empty form
+      this.addressForm = {
+        id: '',
+        province: '',
+        city: '',
+        street: '',
+        zip: '',
+      };
+    }
+
+    this.showAddressDialog = true;
+  },
+    async updateAddress() {
+      try {
+        this.loadingUpdateAddress = true; // Show loading indicator
+
+        const user = auth.currentUser;
+        if (!user) {
+          console.error("User not authenticated.");
+          this.loadingUpdateAddress = false;
+          return;
+        }
+
+        const newAddress = `${this.addressForm.street}, ${this.addressForm.city}, ${this.addressForm.province}, ${this.addressForm.zip}`;
+
+        // Update Orders collection (deliveryAddress)
+        const ordersRef = collection(firestore, "Orders");
+        const q = query(ordersRef, where("userId", "==", user.uid));
+        const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.empty) {
+          console.error("No orders found for this user.");
+          this.loadingUpdateAddress = false;
+          return;
+        }
+
+        const updatePromises = querySnapshot.docs.map((orderDoc) => {
+          const orderRef = doc(firestore, "Orders", orderDoc.id);
+          return updateDoc(orderRef, { deliveryAddress: newAddress });
+        });
+
+        await Promise.all(updatePromises);
+        console.log("Delivery address updated successfully!");
+
+        // Update Users collection (if applicable)
+        const userRef = doc(firestore, "Users", user.uid);
+        await updateDoc(userRef, { address: newAddress });
+
+        console.log("User profile address updated successfully!");
+
+        // Refresh UI in real-time
+        this.address = newAddress;
+
+        // Listen for real-time updates
+        onSnapshot(userRef, (snapshot) => {
+          if (snapshot.exists()) {
+            this.address = snapshot.data().address;
+          }
+        });
+
+        // Close dialog after successful update
+        this.showAddressDialog = false;
+      } catch (error) {
+        console.error("Error updating address:", error);
+      } finally {
+        this.loadingUpdateAddress = false; // Hide loading indicator
+      }
+    },
     confirmLogout() {
       this.showLogoutDialog = false; // Close the dialog
       this.signOut(); // Proceed with the logout
