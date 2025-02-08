@@ -57,7 +57,7 @@
       </div>
 
       <!-- GCash Info Dialog -->
-      <v-dialog v-model="gcashDialog" max-width="500px">
+      <!-- <v-dialog v-model="gcashDialog" max-width="500px">
         <v-card>
           <v-card-title class="headline">GCash Payment</v-card-title>
           <v-card-text>
@@ -72,7 +72,55 @@
             <v-btn @click="closeGcashDialog" color="red">Cancel</v-btn>
           </v-card-actions>
         </v-card>
+      </v-dialog> -->
+        <!-- GCash Info Dialog -->
+      <v-dialog v-model="gcashDialog" max-width="500px">
+        <v-card>
+          <v-card-title class="headline">GCash Payment</v-card-title>
+          <v-card-text>
+            <div class="text-center">
+              <p class="gcash-instruction">
+                Please follow the instructions below before proceeding with the payment:
+              </p>
+              <ol class="gcash-steps">
+                <li>Scan the QR code below using your GCash app.</li>
+                <li>Enter the correct payment amount and complete the transaction.</li>
+                <li>Take a screenshot of the receipt for reference.</li>
+                <li>Enter the **Reference Number**below.</li>
+              </ol>
+              <img src="@/assets/Gcash.jpg" alt="GCash Image" class="gcash-image" />
+
+              <!-- Input Fields -->
+              <v-text-field 
+                v-model="referenceNumber" 
+                label="Reference Number"
+                outlined
+                dense
+                maxlength="13"
+                type="text"
+                placeholder="Enter 13-digit reference number"
+                @input="validateReferenceNumber"
+              ></v-text-field>
+
+              <!-- <v-text-field 
+                v-model="receiptNumber" 
+                label="GCash Receipt Number" 
+                outlined 
+                dense
+                required
+              ></v-text-field> -->
+            </div>
+          </v-card-text>
+
+          <v-card-actions class="justify-end">
+            <v-btn @click="confirmOrder" color="green" :disabled="!isReferenceValid">
+              Confirm Payment
+            </v-btn>
+            <v-btn @click="closeGcashDialog" color="red">Cancel</v-btn>
+          </v-card-actions>
+        </v-card>
       </v-dialog>
+
 
       <!-- QR Code Dialog -->
       <v-dialog v-model="qrCodeDialog" max-width="400px">
@@ -98,13 +146,18 @@
 
 <script>
 import QRCode from 'qrcode';
-import { firestore } from '~/plugins/firebase';
+import { firestore,storage } from '~/plugins/firebase';
+// import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { collection, addDoc, getDocs, query, where, updateDoc, doc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
 export default {
   data() {
     return {
+      gcashDialog: false,            // Controls the GCash payment dialog visibility
+      referenceNumber: "",      // Stores the GCash reference number
+      // receiptNumber: "",        // Stores the GCash receipt number
+      isReferenceValid: false,  // Controls the "Confirm Payment" button state
       orderData: null,
       qrCodeDialog: false, // Dialog visibility for QR code
       gcashDialog: false,  // Dialog visibility for GCash payment info
@@ -142,73 +195,82 @@ export default {
     },
     // async confirmOrder() {
     //   try {
-    //     this.loading = true; // Show loading animation
+    //     // this.loading = true; 
     //     const auth = getAuth();
     //     const user = auth.currentUser;
-    //     if (this.orderData) {
 
-    //       if (user) {
-    //         const orderRef = collection(firestore, 'Orders');
-    //         const orderDocRef = await addDoc(orderRef, {
-    //           userId: this.orderData.userId,
-    //           cartItems: this.orderData.cartItems,
-    //           deliveryAddress: this.orderData.deliveryAddress,
-    //           paymentMethod: this.orderData.paymentMethod,
-    //           subtotal: this.orderData.subtotal,
-    //           tax: this.orderData.tax,
-    //           total: this.orderData.total,
-    //           estimatedDeliveryDate: this.orderData.estimatedDeliveryDate,
-    //           status: 'Pending',
-    //           createdAt: new Date(),
-    //         });
-
-    //         this.orderId = orderDocRef.id;
-    //         this.orderData.orderId = this.orderId;
-            
-    //         // Delay for loading effect before opening dialog
-    //         setTimeout(() => {
-    //           // Check if payment method is GCash
-    //           if (this.orderData.paymentMethod === 'Gcash') {
-    //             this.openGcashDialog(); // Open GCash dialog
-    //           } else if(this.orderData.paymentMethod === 'Pick up'){
-    //             //this.openGcashDialog(); // Open GCash dialog
-    //             this.openQrCodeDialog(); // Proceed to QR code directly
-    //           }else{
-    //             this.goBack();
-    //           }
-    //           this.loading = false; // Hide loading animation
-    //         }, 2000); // Set a delay (2 seconds) for the loading animation
-    //       } else {
-    //         console.error('User not authenticated.');
-    //         this.loading = false;
-    //       }
+    //     if (!user) {
+    //       console.error('User not authenticated.');
+    //       this.loading = false;
+    //       return;
     //     }
-    //     const cartRef = collection(firestore, "Cart"); // Reference to the Cart collection
-    //     const q = query(cartRef, where("userID", "==", user.uid)); // Query to find matching userID
-    //     const querySnapshot = await getDocs(q); // Fetch matching documents
 
-    //     // Update the orderStatus of all matched documents
-    //     const updatePromises = querySnapshot.docs.map((docSnapshot) => {
-    //       const docRef = doc(firestore, "Cart", docSnapshot.id); // Reference to the specific document
-    //       return updateDoc(docRef, { orderStatus: "Confirmed" });
-    //     });
+    //     if (this.orderData) {
+    //       const orderRef = collection(firestore, 'Orders');
+    //       const orderDocRef = await addDoc(orderRef, {
+    //         userId: this.orderData.userId,
+    //         cartItems: this.orderData.cartItems, // Only selected items
+    //         deliveryAddress: this.orderData.deliveryAddress,
+    //         paymentMethod: this.orderData.paymentMethod,
+    //         subtotal: this.orderData.subtotal,
+    //         tax: this.orderData.tax,
+    //         total: this.orderData.total,
+    //         estimatedDeliveryDate: this.orderData.estimatedDeliveryDate,
+    //         status: 'Pending',
+    //         createdAt: new Date(),
+    //       });
 
-    //     await Promise.all(updatePromises); // Wait for all updates to complete
-    //     console.log("Order status updated successfully for all matching items.");
+    //       this.orderId = orderDocRef.id;
+    //       this.orderData.orderId = this.orderId;
+
+    //       // setTimeout(() => {
+    //       //   if (this.orderData.paymentMethod === 'Gcash') {
+    //       //     this.openGcashDialog();
+    //       //   } else if (this.orderData.paymentMethod === 'Pick up') {
+    //       //     this.openQrCodeDialog();
+    //       //   } else {
+    //       //     this.goBack();
+    //       //   }
+    //       //   this.loading = false;
+    //       // }, 2000);
+
+    //       // ✅ FIX: Only update selected items
+    //       const cartRef = collection(firestore, "Cart");
+    //       const selectedProductIDs = this.orderData.cartItems.map(item => item.productID);
+    //       const q = query(cartRef, where("userID", "==", user.uid), where("ProductID", "in", selectedProductIDs));
+    //       const querySnapshot = await getDocs(q);
+
+    //       const updatePromises = querySnapshot.docs.map((docSnapshot) => {
+    //         const docRef = doc(firestore, "Cart", docSnapshot.id);
+    //         return updateDoc(docRef, { orderStatus: "Confirmed" });
+    //       });
+
+    //       await Promise.all(updatePromises);
+    //       console.log("Order status updated successfully for selected items.");
+    //       this.goBack();
+    //     }
     //   } catch (error) {
     //     console.error('Error confirming order:', error);
     //     this.loading = false;
     //   }
     // },
+        // Restrict input to numbers only and check length
+    validateReferenceNumber() {
+      this.referenceNumber = this.referenceNumber.replace(/\D/g, ""); // Remove non-numeric characters
+      this.isReferenceValid = this.referenceNumber.length === 13; // Enable button only if 13 digits
+    },
     async confirmOrder() {
       try {
-        // this.loading = true; 
         const auth = getAuth();
         const user = auth.currentUser;
 
         if (!user) {
           console.error('User not authenticated.');
-          this.loading = false;
+          return;
+        }
+
+        if (!this.referenceNumber) {
+          console.error('Reference Number are required.');
           return;
         }
 
@@ -216,7 +278,7 @@ export default {
           const orderRef = collection(firestore, 'Orders');
           const orderDocRef = await addDoc(orderRef, {
             userId: this.orderData.userId,
-            cartItems: this.orderData.cartItems, // Only selected items
+            cartItems: this.orderData.cartItems, 
             deliveryAddress: this.orderData.deliveryAddress,
             paymentMethod: this.orderData.paymentMethod,
             subtotal: this.orderData.subtotal,
@@ -224,24 +286,15 @@ export default {
             total: this.orderData.total,
             estimatedDeliveryDate: this.orderData.estimatedDeliveryDate,
             status: 'Pending',
+            gcashReferenceNumber: this.referenceNumber,  // ✅ Save Reference Number
+            // gcashReceiptNumber: this.receiptNumber,      // ✅ Save Receipt Number
             createdAt: new Date(),
           });
 
           this.orderId = orderDocRef.id;
           this.orderData.orderId = this.orderId;
 
-          // setTimeout(() => {
-          //   if (this.orderData.paymentMethod === 'Gcash') {
-          //     this.openGcashDialog();
-          //   } else if (this.orderData.paymentMethod === 'Pick up') {
-          //     this.openQrCodeDialog();
-          //   } else {
-          //     this.goBack();
-          //   }
-          //   this.loading = false;
-          // }, 2000);
-
-          // ✅ FIX: Only update selected items
+          // ✅ Update only selected cart items
           const cartRef = collection(firestore, "Cart");
           const selectedProductIDs = this.orderData.cartItems.map(item => item.productID);
           const q = query(cartRef, where("userID", "==", user.uid), where("ProductID", "in", selectedProductIDs));
@@ -253,12 +306,13 @@ export default {
           });
 
           await Promise.all(updatePromises);
-          console.log("Order status updated successfully for selected items.");
+          console.log("Order confirmed with GCash details.");
+
+          this.closeGcashDialog();
           this.goBack();
         }
       } catch (error) {
         console.error('Error confirming order:', error);
-        this.loading = false;
       }
     },
     openDialog() {
@@ -380,6 +434,19 @@ export default {
 </script>
 
 <style scoped>
+.gcash-instructions {
+  font-size: 14px;
+  color: #333;
+  background: #f3f4f6;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  text-align: left;
+  line-height: 1.5;
+}
+.gcash-steps{
+  text-align: left;
+}
 .loading-overlay {
   position: fixed;
   /* This makes the spinner float above other content */
