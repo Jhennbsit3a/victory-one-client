@@ -262,7 +262,46 @@ export default {
     goToProduct(productId) {
       this.$router.push(`/product/${productId}`);
     },
-    async buyNow(product, quantity) {
+  //   async buyNow(product, quantity) {
+  //   try {
+  //     const user = auth.currentUser;
+
+  //     if (!user) {
+  //       // Redirect to sign-in if the user is not authenticated
+  //       this.$router.push('/sign/signin');
+  //       return;
+  //     }
+
+  //     // Create a temporary cart item to pass to the checkout page
+  //     const cartItem = {
+  //       userID: user.uid,
+  //       ProductID: product.id,
+  //       productName: product.ProductName,
+  //       price: product.price,
+  //       Quantity: quantity,
+  //       image: product.image || this.defaultImage,
+  //     };
+
+  //     // Redirect to checkout page with cart item as query
+  //     this.$router.push({
+  //       path: '/checkout',
+  //       query: {
+  //         items: JSON.stringify([cartItem]), // Convert the cart item to a query string
+  //       },
+  //     });
+  //   } catch (error) {
+  //     console.error('Error processing Buy Now action:', error);
+  //   }
+  // },
+    // selectCategory(category) {
+    //   if (this.selectedCategory && this.selectedCategory.CategoryID === category.CategoryID) {
+    //     this.selectedCategory = null;
+    //   } else {
+    //     this.selectedCategory = category;
+    //   }
+    //   this.filterProducts();
+    // },
+      async buyNow(product, quantity) {
     try {
       const user = auth.currentUser;
 
@@ -276,7 +315,7 @@ export default {
       const cartItem = {
         userID: user.uid,
         ProductID: product.id,
-        productName: product.ProductName,
+        productName: product.name, // Corrected field name
         price: product.price,
         Quantity: quantity,
         image: product.image || this.defaultImage,
@@ -292,16 +331,8 @@ export default {
     } catch (error) {
       console.error('Error processing Buy Now action:', error);
     }
-  },
-    // selectCategory(category) {
-    //   if (this.selectedCategory && this.selectedCategory.CategoryID === category.CategoryID) {
-    //     this.selectedCategory = null;
-    //   } else {
-    //     this.selectedCategory = category;
-    //   }
-    //   this.filterProducts();
-    // },
-    selectCategory(category) {
+},
+  selectCategory(category) {
   this.$router.push({ path: '/gallery', query: { category: category.ProductType } });
 },
     filterProducts() {
