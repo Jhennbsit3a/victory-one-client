@@ -159,7 +159,7 @@ export default {
             orderStatus: "Not Confirmed" // Set initial status
           });
 
-          console.log('Product added to cart:', product.ProductName); // Log success message
+          console.log('Product added to cart:', product.name); // Log success message
         } else {
           // If the product already exists in the cart, update the quantity
           const cartDoc = querySnapshot.docs[0]; // Get the first matching document

@@ -377,24 +377,45 @@ export default {
         }
       });
     },
+    // getCartItems() {
+    //   if (!this.isUserLoggedIn) return; // Only proceed if the user is logged in
+
+    //   const cartRef = collection(firestore, 'Cart');
+    //   const cartQuery = query(cartRef, where('userID', '==', this.userID));
+
+    //   // Real-time listener for cart items
+    //   onSnapshot(cartQuery, (querySnapshot) => {
+    //     let itemCount = 0; // Initialize a counter for cart items
+    //     querySnapshot.forEach((doc) => {
+    //       const data = doc.data();
+    //       if (data.orderStatus !== 'Confirmed') {
+    //         itemCount += data.Quantity; // Count only unconfirmed items
+    //       }
+    //     });
+    //     this.cartItemCount = itemCount; // Update cart item count dynamically
+    //   });
+    // },
     getCartItems() {
-      if (!this.isUserLoggedIn) return; // Only proceed if the user is logged in
+  if (!this.isUserLoggedIn) return; // Only proceed if the user is logged in
 
-      const cartRef = collection(firestore, 'Cart');
-      const cartQuery = query(cartRef, where('userID', '==', this.userID));
+  const cartRef = collection(firestore, 'Cart');
+  const cartQuery = query(cartRef, where('userID', '==', this.userID));
 
-      // Real-time listener for cart items
-      onSnapshot(cartQuery, (querySnapshot) => {
-        let itemCount = 0; // Initialize a counter for cart items
-        querySnapshot.forEach((doc) => {
-          const data = doc.data();
-          if (data.orderStatus !== 'Confirmed') {
-            itemCount += data.Quantity; // Count only unconfirmed items
-          }
-        });
-        this.cartItemCount = itemCount; // Update cart item count dynamically
-      });
-    },
+  // Real-time listener for cart items
+  onSnapshot(cartQuery, (querySnapshot) => {
+    let uniqueProducts = new Set(); // Track unique product names
+
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      if (data.orderStatus !== 'Confirmed') {
+        uniqueProducts.add(data.ProductID); // Store unique ProductID
+      }
+    });
+
+    this.cartItemCount = uniqueProducts.size; // Count only unique products
+  });
+},
+
     getCartItemsFromLocalStorage() {
       if (process.client) {
         const cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
