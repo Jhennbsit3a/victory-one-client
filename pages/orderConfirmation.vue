@@ -52,7 +52,7 @@
 
       <!-- Action Buttons -->
       <div class="action-buttons">
-        <button @click="confirmOrder" class="confirm-button">Confirm Order</button>
+        <button @click="openDialog" class="confirm-button">Confirm Order</button>
         <button @click="goBacktoCart" class="go-back-button">Go Back to Cart</button>
       </div>
 
@@ -68,7 +68,7 @@
             </div>
           </v-card-text>
           <v-card-actions>
-            <v-btn @click="goBack" color="green">Done</v-btn>
+            <v-btn @click="confirmOrder" color="green">Done</v-btn>
             <v-btn @click="closeGcashDialog" color="red">Cancel</v-btn>
           </v-card-actions>
         </v-card>
@@ -87,7 +87,7 @@
             </div>
           </v-card-text>
           <v-card-actions>
-            <v-btn @click="goBack" color="green" style="color: white;">Done</v-btn>
+            <v-btn @click="confirmOrder" color="green" style="color: white;">Done</v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
@@ -202,7 +202,7 @@ export default {
     // },
     async confirmOrder() {
       try {
-        this.loading = true; 
+        // this.loading = true; 
         const auth = getAuth();
         const user = auth.currentUser;
 
@@ -230,16 +230,16 @@ export default {
           this.orderId = orderDocRef.id;
           this.orderData.orderId = this.orderId;
 
-          setTimeout(() => {
-            if (this.orderData.paymentMethod === 'Gcash') {
-              this.openGcashDialog();
-            } else if (this.orderData.paymentMethod === 'Pick up') {
-              this.openQrCodeDialog();
-            } else {
-              this.goBack();
-            }
-            this.loading = false;
-          }, 2000);
+          // setTimeout(() => {
+          //   if (this.orderData.paymentMethod === 'Gcash') {
+          //     this.openGcashDialog();
+          //   } else if (this.orderData.paymentMethod === 'Pick up') {
+          //     this.openQrCodeDialog();
+          //   } else {
+          //     this.goBack();
+          //   }
+          //   this.loading = false;
+          // }, 2000);
 
           // ✅ FIX: Only update selected items
           const cartRef = collection(firestore, "Cart");
@@ -254,14 +254,78 @@ export default {
 
           await Promise.all(updatePromises);
           console.log("Order status updated successfully for selected items.");
+          this.goBack();
         }
       } catch (error) {
         console.error('Error confirming order:', error);
         this.loading = false;
       }
     },
-    openGcashDialog() {
-      this.gcashDialog = true; // Show GCash dialog
+    openDialog() {
+        try {
+          this.loading = true; 
+          const auth = getAuth();
+          const user = auth.currentUser;
+
+          if (!user) {
+            console.error('User not authenticated.');
+            this.loading = false;
+            return;
+          }
+
+          if (this.orderData) {
+            // const orderRef = collection(firestore, 'Orders');
+            // const orderDocRef = await addDoc(orderRef, {
+            //   userId: this.orderData.userId,
+            //   cartItems: this.orderData.cartItems, // Only selected items
+            //   deliveryAddress: this.orderData.deliveryAddress,
+            //   paymentMethod: this.orderData.paymentMethod,
+            //   subtotal: this.orderData.subtotal,
+            //   tax: this.orderData.tax,
+            //   total: this.orderData.total,
+            //   estimatedDeliveryDate: this.orderData.estimatedDeliveryDate,
+            //   status: 'Pending',
+            //   createdAt: new Date(),
+            // });
+
+            // this.orderId = orderDocRef.id;
+            // this.orderData.orderId = this.orderId;
+
+            setTimeout(() => {
+              if (this.orderData.paymentMethod === 'Gcash') {
+                this.gcashDialog = true;
+              } else if (this.orderData.paymentMethod === 'Pick up') {
+                this.openQrCodeDialog();
+              } else {
+                this.goBack();
+              }
+              this.loading = false;
+            }, 2000);
+
+            // ✅ FIX: Only update selected items
+            // const cartRef = collection(firestore, "Cart");
+            // const selectedProductIDs = this.orderData.cartItems.map(item => item.productID);
+            // const q = query(cartRef, where("userID", "==", user.uid), where("ProductID", "in", selectedProductIDs));
+            // const querySnapshot = await getDocs(q);
+
+            // const updatePromises = querySnapshot.docs.map((docSnapshot) => {
+            //   const docRef = doc(firestore, "Cart", docSnapshot.id);
+            //   return updateDoc(docRef, { orderStatus: "Confirmed" });
+            // });
+
+            // await Promise.all(updatePromises);
+            // console.log("Order status updated successfully for selected items.");
+          }
+        } catch (error) {
+          console.error('Error confirming order:', error);
+          this.loading = false;
+        }
+      //   this.loading = true; 
+      // // this.gcashDialog = true; // Show GCash dialog
+      //     setTimeout(() => {
+      //       this.gcashDialog = true; // Show GCash dialog
+      //       this.loading = false;
+      //     }, 2000);
     },
     closeGcashDialog() {
       this.gcashDialog = false; // Close GCash dialog
