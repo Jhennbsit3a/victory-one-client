@@ -101,7 +101,14 @@
                 placeholder="Enter 13-digit reference number"
                 @input="validateReferenceNumber"
               ></v-text-field>
-
+              <v-text-field 
+                v-model="totalAmount" 
+                label="Total amount to pay" 
+                outlined 
+                dense
+                :disabled="true"
+                required
+              ></v-text-field>
               <!-- <v-text-field 
                 v-model="receiptNumber" 
                 label="GCash Receipt Number" 
@@ -165,6 +172,7 @@ export default {
       loading: false,      // Loading state
       paymentMethod:'',
       inform:'',
+      totalAmount:0,
     };
   },
   created() {
@@ -286,7 +294,7 @@ export default {
             total: this.orderData.total,
             estimatedDeliveryDate: this.orderData.estimatedDeliveryDate,
             status: 'Pending',
-            gcashReferenceNumber: this.referenceNumber,  // ✅ Save Reference Number
+            referenceNumber: this.referenceNumber,  // ✅ Save Reference Number
             // gcashReceiptNumber: this.receiptNumber,      // ✅ Save Receipt Number
             createdAt: new Date(),
           });
@@ -344,7 +352,7 @@ export default {
 
             // this.orderId = orderDocRef.id;
             // this.orderData.orderId = this.orderId;
-
+            this.totalAmount = this.orderData.total
             setTimeout(() => {
               if (this.orderData.paymentMethod === 'Gcash') {
                 this.gcashDialog = true;
